@@ -1,0 +1,45 @@
+menu "LittleVGL Display configuration"
+
+    config LVGL_SPI_MOSI
+        int "SPI MOSI Pin"
+        default 23
+        help
+            SPI MOSI Pin
+
+    config LVGL_SPI_MISO
+        int "SPI MISO Pin"
+        default -1
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    config LVGL_SPI_CS
+        int "SPI Chip Select pin"
+        default 5
+        help
+            SPI Chip Select pin
+
+    config LVGL_SPI_SCLK
+        int "SPI Clock pin"
+        default 18
+        help
+            SPI Clock pin
+
+    config LVGL_IO_DC
+        int "Data/Command IO pin"
+        default 2
+        help
+            Data/Command IO pin
+
+    config LVGL_IO_RST
+        int "Reset IO pin"
+        default 4
+        help
+            Reset IO pin
+
+    config LVGL_SPI_SPEED_HZ
+        int "SPI clock speed"
+        default 5000000
+        help
+            SPI clock speed in HZ
+
+endmenu
