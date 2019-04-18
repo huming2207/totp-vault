@@ -11,30 +11,52 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
+#include <esp_freertos_hooks.h>
+#include <esp_log.h>
 
+#include "lvgl.h"
+#include "lvgl_hal_st7789.h"
+
+#define TAG "esp-lvgl"
+
+static void lvgl_main_task(void *p)
+{
+    while(1) {
+        vTaskDelay(1);
+        lv_task_handler();
+    }
+}
+
+
+static void IRAM_ATTR lv_tick_cb()
+{
+    lv_tick_inc(portTICK_RATE_MS);
+}
 
 void app_main()
 {
     printf("Hello world!\n");
 
-    /* Print chip information */
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    printf("This is ESP32 chip with %d CPU cores, WiFi%s%s, ",
-            chip_info.cores,
-            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+    ESP_LOGI(TAG, "Initialising LittlevGL");
+    lv_init();
 
-    printf("silicon revision %d, ", chip_info.revision);
+    ESP_LOGI(TAG, "Initialising ST7789");
+    lvgl_st7789_init();
 
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+    ESP_LOGI(TAG, "Initialising LVGL driver");
+    lv_disp_drv_t disp;
+    lv_disp_drv_init(&disp);
+    disp.disp_fill = lvgl_st7789_fill;
+    disp.disp_flush = lvgl_st7789_flush;
 
-    for (int i = 10; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
+    ESP_LOGI(TAG, "Registering LVGL driver");
+    lv_disp_drv_register(&disp);
+
+    ESP_LOGI(TAG, "Registering LVGL tick callback");
+    esp_register_freertos_tick_hook(lv_tick_cb);
+
+    ESP_LOGI(TAG, "Starting LVGL main task");
+    xTaskCreate(lvgl_main_task, "lv_task", 4096, NULL, 5, NULL);
+
 }
+
