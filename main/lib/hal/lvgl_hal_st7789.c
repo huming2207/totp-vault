@@ -138,6 +138,7 @@ void lvgl_st7789_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_
     st7789_prep_write_fb();
 
     uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
+    ESP_LOGI(LOG_TAG, "Sent off size: %u bytes", size);
     st7789_spi_send((uint8_t*)color_map, size, false);
     lv_flush_ready();
 }
@@ -160,7 +161,8 @@ void lvgl_st7789_init()
             .sclk_io_num = CONFIG_LVGL_SPI_SCLK,
             .miso_io_num = -1, // 3-Wire SPI, no MISO
             .quadhd_io_num = -1,
-            .quadwp_io_num = -1
+            .quadwp_io_num = -1,
+            .max_transfer_sz = 240 * 240 * 3
     };
 
     spi_device_interface_config_t device_config = {
