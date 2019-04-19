@@ -46,7 +46,7 @@ uint8_t ngt_gamma_val[] = {
         0x20, 0x23,
 };
 
-static void st7789_spi_send(const uint8_t *payload, size_t len, bool is_cmd)
+static void st7789_spi_send_byte(const uint8_t *payload, size_t len, bool is_cmd)
 {
     if(!payload) {
         ESP_LOGE(LOG_TAG, "Payload is null!");
@@ -66,6 +66,26 @@ static void st7789_spi_send(const uint8_t *payload, size_t len, bool is_cmd)
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
+static void st7789_spi_send_pixel(const uint16_t *payload, size_t len)
+{
+    if(!payload) {
+        ESP_LOGE(LOG_TAG, "Payload is null!");
+        return;
+    }
+
+    spi_transaction_t spi_tract;
+    memset(&spi_tract, 0, sizeof(spi_tract));
+
+    spi_tract.tx_buffer = payload;
+    spi_tract.length = len * 8;
+    spi_tract.rxlength = 0;
+
+    // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
+    ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_DC, ST7789_DAT));
+    ESP_ERROR_CHECK(spi_device_polling_transmit(device_handle, &spi_tract)); // Use blocking transmit for now (easier to debug)
+    // ESP_LOGD(LOG_TAG, "SPI payload sent!");
+}
+
 static void st7789_send_seq(st7789_seq_t *seq)
 {
     if(!seq) {
@@ -74,10 +94,10 @@ static void st7789_send_seq(st7789_seq_t *seq)
     }
 
     ESP_LOGD(LOG_TAG, "Writing to register 0x%02X...", seq->reg);
-    st7789_spi_send(&seq->reg, 1, true);
+    st7789_spi_send_byte(&seq->reg, 1, true);
 
     if(seq->len > 0) {
-        st7789_spi_send(seq->data, seq->len, false);
+        st7789_spi_send_byte(seq->data, seq->len, false);
         ESP_LOGD(LOG_TAG, "Seq data: 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x; len: %u",
                  seq->data[0], seq->data[1], seq->data[2], seq->data[3], seq->data[4], seq->len);
     }
@@ -85,22 +105,22 @@ static void st7789_send_seq(st7789_seq_t *seq)
 
 static void st7789_set_pos(const uint16_t x1, const uint16_t x2, const uint16_t y1, const uint16_t y2)
 {
-    const uint8_t col_cmd = 0x2A, row_cmd = 0x2B;
-    const uint8_t col_start_buf[] = {(const uint8_t)(y1 >> 8u), (const uint8_t)(y1 & 0xffU)};
-    const uint8_t col_end_buf[] = {(const uint8_t)(y2 >> 8u), (const uint8_t)(y2 & 0xffU)};
-    const uint8_t row_start_buf[] = {(const uint8_t)(x1 >> 8u), (const uint8_t)(x1 & 0xffU)};
-    const uint8_t row_end_buf[] = {(const uint8_t)(x2 >> 8u), (const uint8_t)(x2 & 0xffU)};
+    const uint8_t x_pos_cmd = 0x2A, y_pos_cmd = 0x2B;
+    const uint8_t x_start[] = {(const uint8_t)(x1 >> 8u), (const uint8_t)(x1 & 0xffU)};
+    const uint8_t x_end[] = {(const uint8_t)(x2 >> 8u), (const uint8_t)(x2 & 0xffU)};
+    const uint8_t y_start[] = {(const uint8_t)(y1 >> 8u), (const uint8_t)(y1 & 0xffU)};
+    const uint8_t y_end[] = {(const uint8_t)(y2 >> 8u), (const uint8_t)(y2 & 0xffU)};
 
     ESP_LOGI(LOG_TAG, "Setting position in: "
                       "x1: 0x%02X, x2: 0x%02X; y1: 0x%02X, y2: 0x%02X", x1, x2, y1, y2);
 
-    st7789_spi_send(&col_cmd, 1, true);
-    st7789_spi_send(col_start_buf, 2, false);
-    st7789_spi_send(col_end_buf, 2, false);
+    st7789_spi_send_byte(&x_pos_cmd, 1, true);
+    st7789_spi_send_byte(x_start, 2, false);
+    st7789_spi_send_byte(x_end, 2, false);
 
-    st7789_spi_send(&row_cmd, 1, true);
-    st7789_spi_send(row_start_buf, 2, false);
-    st7789_spi_send(row_end_buf, 2, false);
+    st7789_spi_send_byte(&y_pos_cmd, 1, true);
+    st7789_spi_send_byte(y_start, 2, false);
+    st7789_spi_send_byte(y_end, 2, false);
 
     ESP_LOGI(LOG_TAG, "Position set!");
 }
@@ -108,14 +128,14 @@ static void st7789_set_pos(const uint16_t x1, const uint16_t x2, const uint16_t 
 static void st7789_prep_write_fb()
 {
     const uint8_t write_fb_reg = 0x2C;
-    st7789_spi_send(&write_fb_reg, 1, true); // Tell the panel it's about to write something on the screen
+    st7789_spi_send_byte(&write_fb_reg, 1, true); // Tell the panel it's about to write something on the screen
 }
 
 static void st7789_write_fb(const uint16_t val)
 {
     // Split uint16 to two uint8 to save some "context switching" times
     const uint8_t val_buf[2] = {(const uint8_t)(val >> 8u), (const uint8_t)(val & 0xffU)};
-    st7789_spi_send(val_buf, 2, false);
+    st7789_spi_send_byte(val_buf, 2, false);
 }
 
 void lvgl_st7789_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
@@ -124,8 +144,8 @@ void lvgl_st7789_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t
     st7789_prep_write_fb();
 
     ESP_LOGI(LOG_TAG, "Sending framebuffer with RGB value: 0x%X", color.full);
-    for(uint8_t row = 0; row < (x2 - x1); row += 1) {
-        for(uint8_t col = 0; col < (y2 - y1); col += 1) {
+    for(uint8_t col = 0; col < (y2 - y1); col += 1) {
+        for(uint8_t row = 0; row < (x2 - x1); row += 1) {
             st7789_write_fb(color.full);
         }
     }
@@ -137,9 +157,13 @@ void lvgl_st7789_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_
     st7789_set_pos(x1, x2, y1, y2);
     st7789_prep_write_fb();
 
-    uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
-    ESP_LOGI(LOG_TAG, "Sent off size: %u bytes", size);
-    st7789_spi_send((uint8_t*)color_map, size, false);
+    uint32_t line_size = x2 - x1 + 1;
+
+    for(uint32_t curr_y = y1; curr_y <= y2; curr_y++) {
+        st7789_spi_send_pixel((uint16_t *)color_map, line_size * 2);
+        color_map += line_size;
+    }
+
     lv_flush_ready();
 }
 
@@ -184,23 +208,23 @@ void lvgl_st7789_init()
 
     // Throw in positive gamma to RE0h
     const uint8_t pos_gamma_reg = 0xE0;
-    st7789_spi_send(&pos_gamma_reg, 1, true);
-    st7789_spi_send(pos_gamma_val, sizeof(pos_gamma_val), false);
+    st7789_spi_send_byte(&pos_gamma_reg, 1, true);
+    st7789_spi_send_byte(pos_gamma_val, sizeof(pos_gamma_val), false);
 
     // Throw in negative gamma to RE1h
     const uint8_t ngt_gamma_reg = 0xE1;
-    st7789_spi_send(&ngt_gamma_reg, 1, true);
-    st7789_spi_send(ngt_gamma_val, sizeof(ngt_gamma_val), false);
+    st7789_spi_send_byte(&ngt_gamma_reg, 1, true);
+    st7789_spi_send_byte(ngt_gamma_val, sizeof(ngt_gamma_val), false);
 
     // Display inversion on
     const uint8_t disp_inv_on_reg = 0x21;
-    st7789_spi_send(&disp_inv_on_reg, 1, true);
+    st7789_spi_send_byte(&disp_inv_on_reg, 1, true);
 
     // Disable sleep
     const uint8_t sleep_disable_reg = 0x11;
-    st7789_spi_send(&sleep_disable_reg, 1, true);
+    st7789_spi_send_byte(&sleep_disable_reg, 1, true);
 
     // Turn on the panel
     const uint8_t disp_on_reg = 0x29;
-    st7789_spi_send(&disp_on_reg, 1, true);
+    st7789_spi_send_byte(&disp_on_reg, 1, true);
 }
