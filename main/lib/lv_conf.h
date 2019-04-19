@@ -38,7 +38,7 @@
  * Required for buffered drawing, opacity and anti-aliasing
  * VDB makes the double buffering, you don't need to deal with it!
  * Typical size: ~1/10 screen */
-#define LV_VDB_SIZE         (60 * LV_HOR_RES)  /*Size of VDB in pixel count (1/10 screen size is good for first)*/
+#define LV_VDB_SIZE         (120 * LV_HOR_RES)  /*Size of VDB in pixel count (1/10 screen size is good for first)*/
 #define LV_VDB_ADR          0                  /*Place VDB to a specific address (e.g. in external RAM) (0: allocate automatically into RAM)*/
 
 /* Use two Virtual Display buffers (VDB) parallelize rendering and flushing (optional)
@@ -67,7 +67,7 @@
 
 /*Color settings*/
 #define LV_COLOR_DEPTH     16                     /*Color depth: 1/8/16/24*/
-#define LV_COLOR_16_SWAP   0                      /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g. SPI)*/
+#define LV_COLOR_16_SWAP   1                      /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g. SPI)*/
 #define LV_COLOR_TRANSP    LV_COLOR_LIME          /*Images pixels with this color will not be drawn (with chroma keying)*/
 
 /*Text settings*/
@@ -85,6 +85,21 @@
 /*Compiler attributes*/
 #define LV_ATTRIBUTE_TICK_INC   IRAM_ATTR     /* Define a custom attribute to tick increment function */
 #define LV_ATTRIBUTE_TASK_HANDLER
+
+/*Log settings*/
+#define USE_LV_LOG      1   /*Enable/disable the log module*/
+#if USE_LV_LOG
+/* How important log should be added:
+ * LV_LOG_LEVEL_TRACE       A lot of logs to give detailed information
+ * LV_LOG_LEVEL_INFO        Log important events
+ * LV_LOG_LEVEL_WARN        Log if something unwanted happened but didn't caused problem
+ * LV_LOG_LEVEL_ERROR       Only critical issue, when the system may fail
+ */
+#  define LV_LOG_LEVEL    LV_LOG_LEVEL_INFO
+/* 1: Print the log with 'printf'; 0: user need to register a callback*/
+
+#  define LV_LOG_PRINTF   1
+#endif  /*USE_LV_LOG*/
 
 /*================
  *  THEME USAGE
