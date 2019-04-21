@@ -183,14 +183,18 @@ void lvgl_st7789_init()
     spi_bus_config_t bus_config = {
             .mosi_io_num = CONFIG_LVGL_SPI_MOSI,
             .sclk_io_num = CONFIG_LVGL_SPI_SCLK,
-            .miso_io_num = -1, // 3-Wire SPI, no MISO
+            .miso_io_num = -1, // We don't need to get any bullshit from the panel, so no MISO needed.
             .quadhd_io_num = -1,
             .quadwp_io_num = -1,
             .max_transfer_sz = 240 * 240 * 3
     };
 
     spi_device_interface_config_t device_config = {
-            .clock_speed_hz = CONFIG_LVGL_SPI_SPEED_HZ,
+#ifndef CONFIG_LVGL_SPI_CLK_DEBUG
+            .clock_speed_hz = SPI_MASTER_FREQ_40M,
+#else
+            .clock_speed_hz = SPI_MASTER_FREQ_8M,
+#endif
             .mode = 0, // CPOL = 0, CPHA = 0???
             .spics_io_num = CONFIG_LVGL_SPI_CS,
             .queue_size = 7

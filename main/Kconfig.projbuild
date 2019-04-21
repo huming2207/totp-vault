@@ -10,7 +10,7 @@ menu "LittleVGL Display configuration"
         int "SPI MISO Pin"
         default -1
         help
-            WiFi password (WPA or WPA2) for the example to use.
+            SPI MISO pin, leave -1 for ST7789.
 
     config LVGL_SPI_CS
         int "SPI Chip Select pin"
@@ -36,10 +36,11 @@ menu "LittleVGL Display configuration"
         help
             Reset IO pin
 
-    config LVGL_SPI_SPEED_HZ
-        int "SPI clock speed"
-        default 5000000
+    config LVGL_SPI_CLK_DEBUG
+        bool "SPI debug mode (slower clock speed)"
+        default n
         help
-            SPI clock speed in HZ
+            Slow down the SPI to 8.8MHz to make the logic analyser's life easier,
+            otherwise the speed goes to 40MHz for better performance.
 
 endmenu
