@@ -14,6 +14,7 @@
 #include <esp_freertos_hooks.h>
 #include <esp_log.h>
 
+#include "otp.h"
 #include "lvgl.h"
 #include "lvgl_hal_st7789.h"
 
@@ -57,7 +58,7 @@ void app_main()
     esp_register_freertos_tick_hook(lv_tick_cb);
 
     ESP_LOGI(TAG, "Starting LVGL main task");
-    xTaskCreate(lvgl_main_task, "lv_task", 4096, NULL, 5, NULL);
+    xTaskCreate(lvgl_main_task, "lv_task", 4096, NULL, 0, NULL);
 
     lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);     /*Add a button the current screen*/
     lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
@@ -67,15 +68,7 @@ void app_main()
     lv_obj_t * label = lv_label_create(btn, NULL);          /*Add a label to the button*/
     lv_label_set_text(label, "Button");                     /*Set the labels text*/
 
-    /*Create anew style*/
-    static lv_style_t style_txt;
-    lv_style_copy(&style_txt, &lv_style_plain);
-    style_txt.text.letter_space = 2;
-    style_txt.text.line_space = 1;
-    style_txt.text.color = LV_COLOR_HEX(0x606060);
-
     lv_obj_t * txt = lv_label_create(lv_scr_act(), NULL);
-    lv_obj_set_style(txt, &style_txt);                    /*Set the created style*/
     lv_label_set_long_mode(txt, LV_LABEL_LONG_BREAK);     /*Break the long lines*/
     lv_label_set_recolor(txt, true);                      /*Enable re-coloring by commands in the text*/
     lv_label_set_align(txt, LV_LABEL_ALIGN_CENTER);       /*Center aligned lines*/
