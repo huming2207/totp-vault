@@ -13,6 +13,7 @@
 #include "esp_spi_flash.h"
 #include <esp_freertos_hooks.h>
 #include <esp_log.h>
+#include <lv_core/lv_style.h>
 
 #include "otp.h"
 #include "lvgl.h"
@@ -60,23 +61,54 @@ void app_main()
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 4096, NULL, 0, NULL);
 
-    lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);     /*Add a button the current screen*/
-    lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
-    lv_obj_set_size(btn, 100, 50);                          /*Set its size*/
+    static lv_style_t totp_code_style;
+    lv_style_copy(&totp_code_style, &lv_style_plain);
+    totp_code_style.text.font = &dejavu_mono_40;
 
-    lv_btn_set_action(btn, LV_BTN_ACTION_CLICK, NULL);/*Assign a callback to the button*/
-    lv_obj_t * label = lv_label_create(btn, NULL);          /*Add a label to the button*/
-    lv_label_set_text(label, "Button");                     /*Set the labels text*/
+    static lv_style_t totp_hint_style;
+    lv_style_copy(&totp_hint_style, &lv_style_plain);
+    totp_hint_style.text.font = &lv_font_dejavu_20;
 
-    lv_obj_t * txt = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_long_mode(txt, LV_LABEL_LONG_BREAK);     /*Break the long lines*/
-    lv_label_set_recolor(txt, true);                      /*Enable re-coloring by commands in the text*/
-    lv_label_set_align(txt, LV_LABEL_ALIGN_CENTER);       /*Center aligned lines*/
-    lv_label_set_text(txt, "This is a ST7789V IPS module\n"
-                           "Together with ESP32\n"
-                           "Running LittlevGL\n"
-                           "Ported by Jackson Hu\n");
-    lv_obj_set_width(txt, 240);                           /*Set a width*/
-    lv_obj_align(txt, NULL, LV_ALIGN_CENTER, 0, 20);      /*Align to center*/
+    lv_obj_t * upper_hint = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(upper_hint, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(upper_hint, &totp_hint_style);
+    lv_label_set_text(upper_hint, "Google");
+    lv_obj_set_width(upper_hint, 240);
+    lv_obj_align(upper_hint, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 15);
+
+    lv_obj_t * upper_code = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(upper_code, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(upper_code, &totp_code_style);
+    lv_label_set_text(upper_code, "114514");
+    lv_obj_set_width(upper_code, 240);
+    lv_obj_align(upper_code, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 40);
+
+    lv_obj_t * middle_hint = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(middle_hint, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(middle_hint, &totp_hint_style);
+    lv_label_set_text(middle_hint, "Microsoft");
+    lv_obj_set_width(middle_hint, 240);
+    lv_obj_align(middle_hint, NULL, LV_ALIGN_IN_LEFT_MID, 5, -20);
+
+    lv_obj_t * middle_code = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(middle_code, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(middle_code, &totp_code_style);
+    lv_label_set_text(middle_code, "123456");
+    lv_obj_set_width(middle_code, 240);
+    lv_obj_align(middle_code, NULL, LV_ALIGN_IN_LEFT_MID, 0, 20);
+
+    lv_obj_t * lower_hint = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(lower_hint, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(lower_hint, &totp_hint_style);
+    lv_label_set_text(lower_hint, "Cloudflare");
+    lv_obj_set_width(lower_hint, 240);
+    lv_obj_align(lower_hint, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 5, -40);
+
+    lv_obj_t * lower_code = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(lower_code, LV_LABEL_ALIGN_LEFT);
+    lv_obj_set_style(lower_code, &totp_code_style);
+    lv_label_set_text(lower_code, "000000");
+    lv_obj_set_width(lower_code, 240);
+    lv_obj_align(lower_code, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 }
 
