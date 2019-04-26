@@ -111,7 +111,7 @@ static void st7789_set_pos(const uint16_t x1, const uint16_t x2, const uint16_t 
     const uint8_t y_start[] = {(const uint8_t)(y1 >> 8u), (const uint8_t)(y1 & 0xffU)};
     const uint8_t y_end[] = {(const uint8_t)(y2 >> 8u), (const uint8_t)(y2 & 0xffU)};
 
-    ESP_LOGI(LOG_TAG, "Setting position in: "
+    ESP_LOGD(LOG_TAG, "Setting position in: "
                       "x1: 0x%02X, x2: 0x%02X; y1: 0x%02X, y2: 0x%02X", x1, x2, y1, y2);
 
     st7789_spi_send_byte(&x_pos_cmd, 1, true);
@@ -122,7 +122,7 @@ static void st7789_set_pos(const uint16_t x1, const uint16_t x2, const uint16_t 
     st7789_spi_send_byte(y_start, 2, false);
     st7789_spi_send_byte(y_end, 2, false);
 
-    ESP_LOGI(LOG_TAG, "Position set!");
+    ESP_LOGD(LOG_TAG, "Position set!");
 }
 
 static void st7789_prep_write_fb()
@@ -143,13 +143,13 @@ void lvgl_st7789_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t
     st7789_set_pos(x1, x2, y1, y2);
     st7789_prep_write_fb();
 
-    ESP_LOGI(LOG_TAG, "Sending framebuffer with RGB value: 0x%X", color.full);
+    ESP_LOGD(LOG_TAG, "Sending framebuffer with RGB value: 0x%X", color.full);
     for(uint8_t col = 0; col < (y2 - y1); col += 1) {
         for(uint8_t row = 0; row < (x2 - x1); row += 1) {
             st7789_write_fb(color.full);
         }
     }
-    ESP_LOGI(LOG_TAG, "Framebuffer filled!");
+    ESP_LOGD(LOG_TAG, "Framebuffer filled!");
 }
 
 void lvgl_st7789_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t *color_map)
