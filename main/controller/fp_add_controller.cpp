@@ -8,24 +8,19 @@
 
 
 #include "fp_add_view.hpp"
-#include "fp_add_controller.h"
+#include "fp_add_controller.hpp"
 
 #define TAG "fp_add_ctrl"
 
-static lv_obj_t *add_progress = NULL;
-static lv_obj_t *add_label = NULL;
-
-esp_err_t fp_add_screen_init()
+fp_add_controller::fp_add_controller() : view()
 {
-    if((add_progress = view_render_add_progress()) == NULL) return ESP_FAIL;
-    if((add_label = view_render_add_label()) == NULL) return ESP_FAIL;
 
-    return ESP_OK;
 }
 
-esp_err_t fp_add_preform_enrol()
-{
 
+esp_err_t fp_add_controller::preform_enroll()
+{
+    auto add_progress = view.get_object("add_progress");
 
     for(uint8_t count = 1; count <= 6; count++) {
         lv_bar_set_value_anim(add_progress, (int16_t)(100.0 / 6.0 * (double)count), 200);
@@ -34,4 +29,5 @@ esp_err_t fp_add_preform_enrol()
 
     return ESP_OK;
 }
+
 

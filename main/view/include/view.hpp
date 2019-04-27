@@ -1,16 +1,15 @@
-//
-// Created by hu on 27/04/19.
-//
+#pragma once
 
-#ifndef LVGL_ST7789_VIEW_HPP
-#define LVGL_ST7789_VIEW_HPP
+#include <memory>
+#include <map>
 
+#include <lvgl.h>
 
+typedef std::map<std::string, std::unique_ptr<lv_obj_t>> lvgl_obj_map;
 
-class view {
+class view
+{
+    public:
+        virtual lv_obj_t *get_object(const std::string& name) = 0;
 
 };
-
-
-
-#endif //LVGL_ST7789_VIEW_HPP

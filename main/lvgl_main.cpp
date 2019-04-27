@@ -21,9 +21,16 @@
 #include "lvgl.h"
 #include "lvgl_hal_st7789.h"
 
-#include "fp_add_controller.h"
+#include "fp_add_controller.hpp"
 
 #define TAG "esp-lvgl"
+
+extern "C" {
+    void app_main();
+//    static void lvgl_main_task(void *p);
+//    static void IRAM_ATTR lv_tick_cb();
+}
+
 
 static void lvgl_main_task(void *p)
 {
@@ -38,6 +45,7 @@ static void IRAM_ATTR lv_tick_cb()
 {
     lv_tick_inc(portTICK_RATE_MS);
 }
+
 
 void app_main()
 {
@@ -66,9 +74,9 @@ void app_main()
     esp_register_freertos_tick_hook(lv_tick_cb);
 
     ESP_LOGI(TAG, "Starting LVGL main task");
-    xTaskCreate(lvgl_main_task, "lv_task", 8192, NULL, 5, NULL);
+    xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
 
-    fp_add_screen_init();
-    fp_add_preform_enrol();
+    fp_add_controller add_controller;
+    add_controller.preform_enroll();
 }
 
