@@ -66,7 +66,7 @@ void app_main()
     esp_register_freertos_tick_hook(lv_tick_cb);
 
     ESP_LOGI(TAG, "Starting LVGL main task");
-    xTaskCreate(lvgl_main_task, "lv_task", 4096, NULL, 0, NULL);
+    xTaskCreate(lvgl_main_task, "lv_task", 8192, NULL, 5, NULL);
 
     fp_add_screen_init();
     fp_add_preform_enrol();
