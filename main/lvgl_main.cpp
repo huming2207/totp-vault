@@ -14,6 +14,7 @@
 #include <esp_freertos_hooks.h>
 #include <esp_log.h>
 #include <lv_core/lv_style.h>
+#include <totp_controller.hpp>
 
 
 #include "otp.h"
@@ -27,8 +28,6 @@
 
 extern "C" {
     void app_main();
-//    static void lvgl_main_task(void *p);
-//    static void IRAM_ATTR lv_tick_cb();
 }
 
 
@@ -76,7 +75,10 @@ void app_main()
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
 
-    fp_add_controller add_controller;
-    add_controller.preform_enroll();
+//    fp_add_controller add_controller;
+//    add_controller.preform_enroll();
+
+    totp_controller totp_controller;
+    totp_controller.run_totp();
 }
 
