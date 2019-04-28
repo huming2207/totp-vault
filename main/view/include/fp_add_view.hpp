@@ -9,7 +9,7 @@ class fp_add_view : public view
         lv_obj_t *get_object(const std::string& name) override;
 
     private:
-        lvgl_obj_ptr view_render_add_progress();
-        lvgl_obj_ptr view_render_add_label();
+        static lvgl_obj_ptr view_render_add_progress();
+        static lvgl_obj_ptr view_render_add_label();
         lvgl_obj_map obj_map{};
 };
