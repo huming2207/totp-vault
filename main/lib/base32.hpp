@@ -13,12 +13,12 @@
 class base32
 {
     public:
-        static int decode(const uint8_t *encoded, uint8_t *result, int bufSize)
+        static int decode(const char *encoded, uint8_t *result, int bufSize)
         {
             int buffer = 0;
             int bitsLeft = 0;
             int count = 0;
-            for (const uint8_t *ptr = encoded; count < bufSize && *ptr; ++ptr) {
+            for (const char *ptr = encoded; count < bufSize && *ptr; ++ptr) {
                 uint8_t ch = *ptr;
                 if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n' || ch == '-') {
                     continue;
@@ -56,7 +56,7 @@ class base32
             return count;
         };
 
-        static int encode(const uint8_t *data, int length, uint8_t *result, int bufSize)
+        static int encode(const uint8_t *data, int length, char *result, int bufSize)
         {
             if (length < 0 || length > (1 << 28)) {
                 return -1;
