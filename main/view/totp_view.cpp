@@ -2,18 +2,13 @@
 
 totp_view::totp_view()
 {
-    view_render_totp_labels(5, 15, 0, 40, "upper_title", "upper_code", LV_ALIGN_IN_TOP_LEFT);
-    view_render_totp_labels(5, -15, 0, 15, "mid_title", "mid_code", LV_ALIGN_IN_LEFT_MID);
-    view_render_totp_labels(5, -45, 0, -5, "lower_title", "lower_code", LV_ALIGN_IN_BOTTOM_LEFT);
-}
-
-lv_obj_t *totp_view::get_object(const std::string &name)
-{
-    return obj_map[name].get();
+    view_render_totp_labels(5, 15, 0, 40, LV_ALIGN_IN_TOP_LEFT);
+    view_render_totp_labels(5, -15, 0, 15, LV_ALIGN_IN_LEFT_MID);
+    view_render_totp_labels(5, -45, 0, -5, LV_ALIGN_IN_BOTTOM_LEFT);
 }
 
 void totp_view::view_render_totp_labels(int16_t title_x, int16_t title_y, int16_t code_x, int16_t code_y,
-                                        const std::string& title_name, const std::string& code_name, lv_align_t align)
+                                        lv_align_t align)
 {
     static lv_style_t totp_title_style;
     lv_style_copy(&totp_title_style, &lv_style_plain);
@@ -30,8 +25,6 @@ void totp_view::view_render_totp_labels(int16_t title_x, int16_t title_y, int16_
     lv_obj_set_width(title, 240);
     lv_obj_align(title, nullptr, align, title_x, title_y);
 
-    obj_map.emplace(title_name, view::make_object(title));
-
     lv_obj_t * code = lv_label_create(lv_scr_act(), nullptr);
     lv_label_set_align(code, LV_LABEL_ALIGN_LEFT);
     lv_obj_set_style(code, &totp_code_style);
@@ -39,12 +32,21 @@ void totp_view::view_render_totp_labels(int16_t title_x, int16_t title_y, int16_
     lv_obj_set_width(code, 240);
     lv_obj_align(code, nullptr, align, code_x, code_y);
 
-    obj_map.emplace(code_name, view::make_object(code));
+    obj_list.emplace_back(std::make_tuple(view::make_object(title), view::make_object(code)));
 }
 
-lvgl_obj_map &totp_view::get_obj_map()
+totp_obj_list &totp_view::get_obj_list()
 {
-    return obj_map;
+    return obj_list;
 }
 
+void totp_view::set_label(uint8_t target, const char *title, const char *token)
+{
+    auto &tuple = obj_list[target];
+    auto &title_label = std::get<0>(tuple);
+    auto &token_label = std::get<1>(tuple);
+
+    lv_label_set_text(title_label.get(), title);
+    lv_label_set_text(token_label.get(), token);
+}
 
