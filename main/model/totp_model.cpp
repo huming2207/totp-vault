@@ -10,8 +10,6 @@ totp_model::totp_model() : nvs("vault", NVS_READWRITE)
     refresh_list();
 }
 
-
-
 esp_err_t totp_model::add_totp_tuple(const std::string &title, const std::string &token)
 {
     // Decode Base32 token to byte array, following Google's method
@@ -20,7 +18,7 @@ esp_err_t totp_model::add_totp_tuple(const std::string &title, const std::string
     auto *token_decoded = new uint8_t[token_len];
     if((token_len = base32::decode(token.c_str(), token_decoded, token_len)) < 1) return ESP_ERR_INVALID_SIZE;
 
-    totp_tuple_list.push_back({ title, std::vector<uint8_t>(token_decoded, token_decoded + token_len) });
+    totp_list.push_back({ title, std::vector<uint8_t>(token_decoded, token_decoded + token_len) });
 
     delete[] token_decoded; // Delete decoded buffer after use...
     save_list();
@@ -29,10 +27,10 @@ esp_err_t totp_model::add_totp_tuple(const std::string &title, const std::string
 
 esp_err_t totp_model::remove_totp_tuple(const std::string &title)
 {
-    for(auto it = totp_tuple_list.begin(); it != totp_tuple_list.end(); ++it) {
+    for(auto it = totp_list.begin(); it != totp_list.end(); ++it) {
         auto curr_tuple = *it;
         if(title == curr_tuple.title) {
-            totp_tuple_list.erase(it); // Remove current tuple
+            totp_list.erase(it); // Remove current tuple
             save_list();
             return ESP_OK;
         }
@@ -54,32 +52,32 @@ void totp_model::refresh_list()
 
     if(count < 1) return; // Forget about reading TOTP array blob anyway...
 
-    totp_tuple_list.clear();
+    totp_list.clear();
     auto *token_list_array = new totp_tuple_t[count];
-    totp_tuple_list = std::vector<totp_tuple_t>(token_list_array, token_list_array + count);
+    totp_list = std::vector<totp_tuple_t>(token_list_array, token_list_array + count);
     delete[] token_list_array;
 }
 
 void totp_model::save_list()
 {
-    ESP_ERROR_CHECK(nvs.write(TOTP_LIST_KEY, totp_tuple_list.data()));
-    ESP_ERROR_CHECK(nvs.write(TOTP_LIST_KEY, totp_tuple_list.size()));
+    ESP_ERROR_CHECK(nvs.write(TOTP_LIST_KEY, totp_list.data()));
+    ESP_ERROR_CHECK(nvs.write(TOTP_LIST_KEY, totp_list.size()));
 }
 
 totp_tuple_t totp_model::get_totp_tuple(const std::string &title)
 {
-    for(auto curr_tuple : totp_tuple_list) {
+    for(auto curr_tuple : totp_list) {
         if(title == curr_tuple.title) return curr_tuple;
     }
 }
 
-std::vector<totp_tuple_t> totp_model::get_totp_list()
+totp_tuple_list totp_model::get_totp_list()
 {
-    return totp_tuple_list;
+    return totp_list;
 }
 
 totp_model::~totp_model()
 {
     save_list();
-    totp_tuple_list.clear();
+    totp_list.clear();
 }

@@ -12,6 +12,8 @@ typedef struct __attribute__((packed)) {
     std::vector<uint8_t> token;
 } totp_tuple_t;
 
+typedef std::vector<totp_tuple_t> totp_tuple_list;
+
 class totp_model
 {
     public:
@@ -20,13 +22,12 @@ class totp_model
         esp_err_t add_totp_tuple(const std::string &title, const std::string &token);
         esp_err_t remove_totp_tuple(const std::string &title);
         totp_tuple_t get_totp_tuple(const std::string &title);
-        totp_tuple_t get_totp_by_idx(size_t idx);
-        std::vector<totp_tuple_t> get_totp_list();
+        totp_tuple_list get_totp_list();
         void refresh_list();
         void save_list();
 
     private:
         nv_storage nvs;
-        std::vector<totp_tuple_t> totp_tuple_list{};
+        totp_tuple_list totp_list{};
 
 };
