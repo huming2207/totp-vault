@@ -1,6 +1,6 @@
-file(GLOB_RECURSE LVGL_HEADERS "lib/lvgl/*.h"  "lib/*.h" "lib/hal/*.h")
-file(GLOB_RECURSE LVGL_INCLUDES LIST_DIRECTORIES true "lib/lvgl" "lib/hal")
-file(GLOB_RECURSE LVGL_SOURCES "lib/lvgl/*.c" "lib/hal/*.c" "lib/*.c")
+file(GLOB_RECURSE LVGL_HEADERS "lib/lvgl/*.h"  "lib/*.h" "lib/hal/*.h" "lib/*.hpp")
+file(GLOB_RECURSE LVGL_INCLUDES LIST_DIRECTORIES true "lib/lvgl" "lib/hal" "lib")
+file(GLOB_RECURSE LVGL_SOURCES "lib/lvgl/*.c" "lib/hal/*.c" "lib/*.c" "lib/*.cpp")
 
 file(GLOB_RECURSE GUI_INCLUDES LIST_DIRECTORIES true "view/include" "model/include" "controller/include")
 file(GLOB_RECURSE GUI_SOURCES "view/*.cpp" "model/*.cpp" "controller/*.cpp")
