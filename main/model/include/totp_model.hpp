@@ -7,8 +7,8 @@
 #define TOTP_MAX_IDX        0x7f
 #define BITS_PER_BASE32_CHAR      5     // Base32 expands space by 8/5
 
-typedef struct __attribute__((packed)) {
-    const std::string title;
+typedef struct {
+    std::string title;
     std::vector<uint8_t> token;
 } totp_tuple_t;
 

@@ -15,6 +15,7 @@
 #include <esp_log.h>
 #include <lv_core/lv_style.h>
 #include <totp_controller.hpp>
+#include <nv_storage.hpp>
 
 
 #include "otp.h"
@@ -50,14 +51,14 @@ void app_main()
 {
     printf("Hello world!\n");
 
+    ESP_LOGI(TAG, "Initialising NVS");
+    nv_storage::flash_init();
+
     ESP_LOGI(TAG, "Initialising LittlevGL");
     lv_init();
 
     ESP_LOGI(TAG, "Initialising ST7789");
     lvgl_st7789_init();
-
-    ESP_LOGI(TAG, "Initialising FP1020A");
-    fp1020a_init();
 
     ESP_LOGI(TAG, "Initialising LVGL driver");
     lv_disp_drv_t disp;
@@ -75,10 +76,10 @@ void app_main()
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
 
-//    fp_add_controller add_controller;
-//    add_controller.preform_enroll();
+    fp_add_controller add_controller;
+    add_controller.preform_enroll();
 
-    totp_controller totp_controller;
-    totp_controller.run_totp();
+//    totp_controller totp_controller;
+//    totp_controller.run_totp();
 }
 

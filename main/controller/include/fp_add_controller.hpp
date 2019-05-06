@@ -9,6 +9,7 @@ class fp_add_controller
 {
     public:
         fp_add_controller();
+        ~fp_add_controller();
         esp_err_t preform_enroll();
 
     private:

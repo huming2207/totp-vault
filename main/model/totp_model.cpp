@@ -69,6 +69,8 @@ totp_tuple_t totp_model::get_totp_tuple(const std::string &title)
     for(auto curr_tuple : totp_list) {
         if(title == curr_tuple.title) return curr_tuple;
     }
+
+    return {};
 }
 
 totp_tuple_list totp_model::get_totp_list()
