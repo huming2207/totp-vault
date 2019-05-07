@@ -1,8 +1,8 @@
 #pragma once
 
-#include "view.hpp"
+#include "mapped_view.hpp"
 
-class fp_add_view : public view
+class fp_add_view : public mapped_view
 {
     public:
         fp_add_view();
@@ -12,5 +12,4 @@ class fp_add_view : public view
     private:
         static lvgl_obj_ptr view_render_progress_bar();
         static lvgl_obj_ptr view_render_progress_label();
-        lvgl_obj_map obj_map{};
 };

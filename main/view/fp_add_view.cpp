@@ -1,6 +1,6 @@
 #include "fp_add_view.hpp"
 
-fp_add_view::fp_add_view()
+fp_add_view::fp_add_view() : mapped_view()
 {
     obj_map.emplace("add_progress", view_render_progress_bar());
     obj_map.emplace("add_label", view_render_progress_label());

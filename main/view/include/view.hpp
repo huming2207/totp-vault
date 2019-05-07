@@ -7,7 +7,6 @@
 #include <lvgl.h>
 
 typedef std::unique_ptr<lv_obj_t, std::function<void(lv_obj_t*)>> lvgl_obj_ptr;
-typedef std::map<std::string, lvgl_obj_ptr> lvgl_obj_map;
 
 class view
 {

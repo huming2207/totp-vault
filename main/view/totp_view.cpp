@@ -1,6 +1,6 @@
 #include "totp_view.hpp"
 
-totp_view::totp_view()
+totp_view::totp_view() : listed_view()
 {
     view_render_totp_labels(5, 15, 0, 40, LV_ALIGN_IN_TOP_LEFT);
     view_render_totp_labels(5, -15, 0, 15, LV_ALIGN_IN_LEFT_MID);
@@ -32,10 +32,10 @@ void totp_view::view_render_totp_labels(int16_t title_x, int16_t title_y, int16_
     lv_obj_set_width(code, 240);
     lv_obj_align(code, nullptr, align, code_x, code_y);
 
-    obj_list.emplace_back(std::make_tuple(view::make_object(title), view::make_object(code)));
+    obj_list.emplace_back(make_obj_tuple(view::make_object(title), view::make_object(code)));
 }
 
-totp_obj_list &totp_view::get_obj_list()
+lvgl_obj_list &totp_view::get_obj_list()
 {
     return obj_list;
 }
@@ -43,8 +43,8 @@ totp_obj_list &totp_view::get_obj_list()
 void totp_view::set_label(uint8_t target, const char *title, const char *token)
 {
     auto &tuple = obj_list[target];
-    auto &title_label = std::get<0>(tuple);
-    auto &token_label = std::get<1>(tuple);
+    auto &title_label = tuple[0];
+    auto &token_label = tuple[1];
 
     lv_label_set_text(title_label.get(), title);
     lv_label_set_text(token_label.get(), token);
