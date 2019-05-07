@@ -17,13 +17,12 @@ class listed_view : public view
         lvgl_obj_list obj_list{};
 
         // From: https://tristanbrindle.com/posts/beware-copies-initializer-list
-        template <typename... Args>
-        lvgl_obj_tuple make_obj_tuple(Args&&... args)
+        template <typename... obj_ptrs>
+        lvgl_obj_tuple make_obj_tuple(obj_ptrs&&... args)
         {
-            lvgl_obj_tuple tuple;
-            tuple.reserve(sizeof...(Args));
+            lvgl_obj_tuple tuple(sizeof...(obj_ptrs));
             using arr_t = int[];
-            (void) arr_t{0, (tuple.emplace_back(std::forward<Args>(args)), 0)...};
+            (void) arr_t{0, (tuple.emplace_back(std::forward<obj_ptrs>(args)), 0)...};
             return tuple;
         };
 };
