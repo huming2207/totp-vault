@@ -22,7 +22,7 @@ void totp_controller::run_totp()
     for(uint8_t idx = 0; idx < model_list.size(); idx++) {
         auto totp_tuple = model_list[idx];
         char code_str[6] = { '\0' };
-        itoa(generate_token(totp_tuple.token), code_str, 10);
+        itoa(generate_token(totp_tuple.token), code_str, 10); // Convert to C string and write to
         view.set_label(idx, totp_tuple.title.c_str(), code_str);
     }
 }

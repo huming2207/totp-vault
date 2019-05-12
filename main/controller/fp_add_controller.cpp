@@ -16,7 +16,7 @@
 
 fp_add_controller::fp_add_controller() : view()
 {
-    fp1020a_init();
+
 }
 
 
@@ -75,18 +75,8 @@ esp_err_t fp_add_controller::preform_enroll()
     } while(ret == FP1020A_ACK_TRY_AGAIN);
     lv_bar_set_value_anim(add_progress, 100, 200);
 
-    view.set_title_label_text("Done!\n\n\n\n\n\nRecording deleted.\nTrust me, it's a demo");
+    view.set_title_label_text("Successfully recorded!");
 
 
     return ESP_OK;
 }
-
-
-fp_add_controller::~fp_add_controller()
-{
-    fp1020a_remove_all_user();
-    fp1020a_deinit();
-    vTaskDelay(portMAX_DELAY);
-}
-
-
