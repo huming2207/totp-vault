@@ -7,3 +7,6 @@
 [submodule "components/fp1020a"]
 	path = components/fp1020a
 	url = git@github.com:huming2207/esp-fp1020a.git
+[submodule "components/starry_net"]
+	path = components/starry_net
+	url = git@github.com:huming2207/StarryNet.git
