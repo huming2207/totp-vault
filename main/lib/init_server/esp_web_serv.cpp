@@ -1,5 +1,5 @@
 #include <esp_http_server.h>
-#include "esp_web_serv.hpp"
+#include "init_server/include/esp_web_serv.hpp"
 
 esp_web_serv::esp_web_serv()
 {
@@ -59,4 +59,38 @@ esp_err_t esp_web_serv::on_error(httpd_err_code_t err_code, const std::function<
         auto *instance = static_cast<esp_web_serv*>(req->user_ctx);
         return instance->err_handler[error](req);
     });
+}
+
+esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::vector<uint8_t> &buf)
+{
+    return httpd_resp_send(req, (const char *)buf.data(), buf.size());
+}
+
+esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::string &buf)
+{
+    return httpd_resp_send(req, buf.c_str(), buf.size());
+}
+
+esp_err_t esp_web_serv::set_header(httpd_req_t *req, const std::map<std::string, std::string> &headers)
+{
+    esp_err_t ret = ESP_OK;
+    for(auto& pair : headers) {
+        ret = ret ?: httpd_resp_set_hdr(req, pair.first.c_str(), pair.second.c_str());
+    }
+    return ret;
+}
+
+esp_err_t esp_web_serv::set_header(httpd_req_t *req, const std::string &key, const std::string &val)
+{
+    return httpd_resp_set_hdr(req, key.c_str(), val.c_str());
+}
+
+esp_err_t esp_web_serv::set_status(httpd_req_t *req, const std::string &status)
+{
+    return httpd_resp_set_status(req, status.c_str());
+}
+
+esp_err_t esp_web_serv::set_type(httpd_req_t *req, const std::string &type)
+{
+    return httpd_resp_set_status(req, type.c_str());
 }
