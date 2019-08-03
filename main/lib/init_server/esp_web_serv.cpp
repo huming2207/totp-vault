@@ -68,7 +68,7 @@ esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::vector<uint8_t> &
 
 esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::string &buf)
 {
-    return httpd_resp_send(req, buf.c_str(), buf.size());
+    return httpd_resp_sendstr(req, buf.c_str());
 }
 
 esp_err_t esp_web_serv::set_header(httpd_req_t *req, const std::map<std::string, std::string> &headers)
@@ -93,4 +93,19 @@ esp_err_t esp_web_serv::set_status(httpd_req_t *req, const std::string &status)
 esp_err_t esp_web_serv::set_type(httpd_req_t *req, const std::string &type)
 {
     return httpd_resp_set_status(req, type.c_str());
+}
+
+esp_err_t esp_web_serv::send_chunk(httpd_req_t *req, const std::vector<uint8_t> &chunk)
+{
+    return httpd_resp_send_chunk(req, (const char *)chunk.data(), chunk.size());
+}
+
+esp_err_t esp_web_serv::send_chunk(httpd_req_t *req, const std::string &chunk)
+{
+    return httpd_resp_send_chunk(req, chunk.c_str(), chunk.size());
+}
+
+httpd_handle_t esp_web_serv::get_serv_instance()
+{
+    return server;
 }
