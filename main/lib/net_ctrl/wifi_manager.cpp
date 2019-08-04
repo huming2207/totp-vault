@@ -7,7 +7,7 @@
 
 #define TAG "wifi_mgr"
 
-using namespace web_ctrl;
+using namespace net_ctrl;
 
 uint8_t wifi_manager::sta_max_retry = 5;
 ip_addr_t wifi_manager::ip_addr = {};
