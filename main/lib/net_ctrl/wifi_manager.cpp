@@ -102,7 +102,8 @@ esp_err_t wifi_manager::set_ap_config(const std::string &ssid, const std::string
     std::strcpy(reinterpret_cast<char *>(wifi_config.ap.password), passwd.c_str());
     wifi_config.ap.ssid_len = ssid.size();
 
-    auto ret = esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+    auto ret = esp_wifi_set_mode(WIFI_MODE_AP);
+    ret = ret ?: esp_wifi_set_storage(WIFI_STORAGE_FLASH);
     ret = ret ?: esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
     return ret;
 }
@@ -114,7 +115,8 @@ esp_err_t wifi_manager::set_sta_config(const std::string &ssid, const std::strin
     std::strcpy(reinterpret_cast<char *>(wifi_config.sta.password), passwd.c_str());
     wifi_config.sta.scan_method = fast_scan ? WIFI_FAST_SCAN : WIFI_ALL_CHANNEL_SCAN;
 
-    auto ret = esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+    auto ret = esp_wifi_set_mode(WIFI_MODE_STA);
+    ret = ret ?: esp_wifi_set_storage(WIFI_STORAGE_FLASH);
     ret = ret ?: esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
     return ret;
 }
@@ -135,4 +137,56 @@ wifi_manager& wifi_manager::get_manager()
 esp_err_t wifi_manager::stop()
 {
     return esp_wifi_stop();
+}
+
+esp_err_t wifi_manager::set_cheers_payload()
+{
+    const uint8_t vendor_oui[] = { 0xca, 0xfe, 0xfe };
+    def::cheers_payload payload;
+    wifi_config_t config{};
+
+    // Get saved WiFi STA configuration
+    auto ret = esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
+    if(ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get config, ret: %u", ret);
+        return ret;
+    }
+
+    // Prepare payload
+    std::memset(&payload, '\0', sizeof(payload));
+    std::strcpy((char *)payload.ssid, (const char *)config.sta.ssid);
+    std::strcpy((char *)payload.passwd, (const char *)config.sta.password);
+
+    // Register payload
+    auto *vendor_data = (vendor_ie_data_t *)malloc(sizeof(vendor_ie_data_t) + sizeof(payload));
+    vendor_data->element_id = WIFI_VENDOR_IE_ELEMENT_ID;
+    vendor_data->length = sizeof(payload);
+    std::memcpy(vendor_data->payload, &payload, sizeof(payload));
+    std::memcpy(vendor_data->vendor_oui, &vendor_oui, sizeof(vendor_oui));
+    vendor_data->vendor_oui_type = 0;
+
+    ret = esp_wifi_set_vendor_ie(true, WIFI_VND_IE_TYPE_BEACON, WIFI_VND_IE_ID_1, vendor_data);
+    if(ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set vendor IE, ret: %u", ret);
+        return ret;
+    }
+
+    free(vendor_data);
+    return ret;
+}
+
+esp_err_t wifi_manager::set_cheers_payload(std::vector<uint8_t> payload)
+{
+    return 0;
+}
+
+esp_err_t wifi_manager::recv_cheers(time_t timeout)
+{
+    ESP_ERROR_CHECK(esp_wifi_set_vendor_ie_cb([]
+    (void *ctx, wifi_vendor_ie_type_t type, const uint8_t sa[6], const vendor_ie_data_t *vnd_ie, int rssi) {
+        ESP_LOGI(TAG, "Got Vendor IE from source: " MACSTR ", RSSI: %d dbm", MAC2STR(sa), rssi);
+    }, this));
+
+
+    return 0;
 }
