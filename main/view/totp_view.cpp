@@ -12,7 +12,7 @@ void totp_view::view_render_totp_labels(int16_t title_x, int16_t title_y, int16_
 {
     static lv_style_t totp_title_style;
     lv_style_copy(&totp_title_style, &lv_style_plain);
-    totp_title_style.text.font = &lv_font_dejavu_20;
+    totp_title_style.text.font = &lv_font_roboto_16;
 
     static lv_style_t totp_code_style;
     lv_style_copy(&totp_code_style, &lv_style_plain);
