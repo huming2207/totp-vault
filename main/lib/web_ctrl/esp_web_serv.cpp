@@ -1,11 +1,13 @@
 #include <esp_http_server.h>
-#include "init_server/include/esp_web_serv.hpp"
+#include "esp_web_serv.hpp"
+
+using namespace web_ctrl;
 
 esp_web_serv::esp_web_serv()
 {
     httpd_config_t config;
     config.task_priority = tskIDLE_PRIORITY + 5;
-    config.stack_size = 4096;
+    config.stack_size = 8192;
     config.core_id = tskNO_AFFINITY;
     config.server_port = 80;
     config.ctrl_port = 32768;
