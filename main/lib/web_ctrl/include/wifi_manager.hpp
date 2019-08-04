@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/event_groups.h>
 #include <esp_wifi.h>
 
 namespace web_ctrl
@@ -26,6 +29,7 @@ namespace web_ctrl
             esp_err_t set_ap_config(const std::string &ssid, const std::string &passwd, uint8_t channel);
             esp_err_t set_sta_config(const std::string &ssid, const std::string &passwd, bool fast_scan);
             esp_err_t start(wifi_mode_t mode = WIFI_MODE_AP);
+            esp_err_t stop();
 
         private:
             wifi_manager();

@@ -1,7 +1,5 @@
 #include <cstring>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/event_groups.h>
 #include <esp_log.h>
 
 #include <nvs_flash.h>
@@ -132,4 +130,9 @@ wifi_manager& wifi_manager::get_manager()
 {
     static wifi_manager instance;
     return instance;
+}
+
+esp_err_t wifi_manager::stop()
+{
+    return esp_wifi_stop();
 }
