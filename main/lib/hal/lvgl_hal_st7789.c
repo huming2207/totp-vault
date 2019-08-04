@@ -152,19 +152,19 @@ void lvgl_st7789_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t
     ESP_LOGD(LOG_TAG, "Framebuffer filled!");
 }
 
-void lvgl_st7789_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t *color_map)
+void lvgl_st7789_flush(struct _disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    st7789_set_pos(x1, x2, y1, y2);
+    st7789_set_pos(area->x1, area->x2, area->y1, area->y2);
     st7789_prep_write_fb();
 
-    uint32_t line_size = x2 - x1 + 1;
+    uint32_t line_size = area->x2 - area->x1 + 1;
 
-    for(uint32_t curr_y = y1; curr_y <= y2; curr_y++) {
-        st7789_spi_send_pixel((uint16_t *)color_map, line_size * 2);
-        color_map += line_size;
+    for(uint32_t curr_y = area->y1; curr_y <= area->y2; curr_y++) {
+        st7789_spi_send_pixel(&color_p->full, line_size * 2);
+        color_p += line_size;
     }
 
-    lv_flush_ready();
+    lv_disp_flush_ready(disp_drv);
 }
 
 void lvgl_st7789_init()

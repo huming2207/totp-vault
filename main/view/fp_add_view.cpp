@@ -11,7 +11,7 @@ lvgl_obj_ptr fp_add_view::view_render_progress_bar()
     lv_obj_t * progress = lv_bar_create(lv_scr_act(), nullptr);
     lv_obj_set_size(progress, 150, 50);
     lv_obj_align(progress, nullptr, LV_ALIGN_CENTER, 0, 0);
-    lv_bar_set_value(progress, 0);
+    lv_bar_set_value(progress, 0, LV_ANIM_ON);
 
     return view::make_object(progress);
 }

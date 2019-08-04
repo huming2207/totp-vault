@@ -23,10 +23,9 @@ lvgl_obj_ptr fp_verify_view::view_render_icon()
 {
     static lv_style_t style_txt;
     lv_style_copy(&style_txt, &lv_style_plain);
-    style_txt.text.font = &noto_emoji_80;
 
     lv_obj_t * icon = lv_label_create(lv_scr_act(), nullptr);
-    lv_label_set_text(icon, SYMBOL_REFRESH);
+    lv_label_set_text(icon, LV_SYMBOL_REFRESH);
     lv_obj_set_width(icon, 240);
     lv_obj_set_style(icon, &style_txt);
     lv_obj_align(icon, nullptr, LV_ALIGN_IN_LEFT_MID, 85, 0);
