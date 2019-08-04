@@ -37,7 +37,8 @@ esp_err_t fp_add_controller::preform_enroll()
             vTaskDelay(portMAX_DELAY);
         }
     } while(ret == FP1020A_ACK_TRY_AGAIN);
-    lv_bar_set_value_anim(add_progress, (int16_t)(100.0 / 6.0), 200);
+    lv_bar_set_anim_time(add_progress, 200);
+    lv_bar_set_value(add_progress, (int16_t)(100.0 / 6.0), LV_ANIM_ON);
 
 
     // Intermediate rounds
@@ -57,7 +58,8 @@ esp_err_t fp_add_controller::preform_enroll()
                 vTaskDelay(portMAX_DELAY);
             }
         } while(ret == FP1020A_ACK_TRY_AGAIN);
-        lv_bar_set_value_anim(add_progress, (int16_t)(100.0 / 6.0 * (double)count), 200);
+        lv_bar_set_anim_time(add_progress, 200);
+        lv_bar_set_value(add_progress, (int16_t)(100.0 / 6.0 * (double)count), LV_ANIM_ON);
     }
 
     // Last round
@@ -73,7 +75,8 @@ esp_err_t fp_add_controller::preform_enroll()
             vTaskDelay(portMAX_DELAY);
         }
     } while(ret == FP1020A_ACK_TRY_AGAIN);
-    lv_bar_set_value_anim(add_progress, 100, 200);
+    lv_bar_set_anim_time(add_progress, 200);
+    lv_bar_set_value(add_progress, 100, LV_ANIM_ON);
 
     view.set_title_label_text("Successfully recorded!");
 
