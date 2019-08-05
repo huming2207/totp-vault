@@ -128,6 +128,8 @@ esp_err_t wifi_manager::start(wifi_mode_t mode)
     return ret;
 }
 
+
+
 wifi_manager& wifi_manager::get_manager()
 {
     static wifi_manager instance;
@@ -189,4 +191,14 @@ esp_err_t wifi_manager::recv_cheers(time_t timeout)
 
 
     return 0;
+}
+
+esp_err_t wifi_manager::get_ap_config(wifi_config_t &config)
+{
+    return esp_wifi_get_config(ESP_IF_WIFI_AP, &config);
+}
+
+esp_err_t wifi_manager::get_sta_config(wifi_config_t &config)
+{
+    return esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
 }

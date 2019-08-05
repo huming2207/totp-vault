@@ -38,6 +38,8 @@ namespace net_ctrl
             esp_err_t set_cheers_payload();
             esp_err_t set_cheers_payload(std::vector<uint8_t> payload);
             esp_err_t recv_cheers(time_t timeout);
+            esp_err_t get_ap_config(wifi_config_t &config);
+            esp_err_t get_sta_config(wifi_config_t &config);
 
         private:
             wifi_manager();
