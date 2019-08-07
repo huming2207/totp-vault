@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <ArduinoJson.h>
 #include <wifi_manager.hpp>
 
@@ -8,7 +10,51 @@ using namespace net_ctrl;
 
 esp_err_t rest_controller::on_wifi_set(httpd_req_t *req)
 {
-    return 0;
+    char buf[req->content_len];
+    size_t remain = req->content_len;
+    int ret = 0;
+
+    while(remain > 0) {
+        if((ret = httpd_req_recv(req, buf, std::min(remain, req->content_len))) <= 0) {
+            if(ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                continue;
+            }
+            return ESP_FAIL;
+        }
+
+        remain -= ret;
+    }
+
+    StaticJsonDocument<192> recv_json;
+    if(deserializeJson(recv_json, buf) != DeserializationError::Code::Ok) {
+        esp_web_serv::set_status(req, HTTPD_400);
+        esp_web_serv::set_type(req, HTTPD_TYPE_JSON);
+        esp_web_serv::send_body(req, R"({"info":"Invalid request"})");
+        return ESP_FAIL;
+    }
+
+    auto& wifi_mgr = wifi_manager::get_manager();
+    std::string ssid = recv_json["ssid"];
+    std::string password = recv_json["passwd"];
+
+    if(ssid.empty() || ssid.size() > 32 || password.size() > 64) {
+        esp_web_serv::set_status(req, HTTPD_400);
+        esp_web_serv::set_type(req, HTTPD_TYPE_JSON);
+        esp_web_serv::send_body(req, R"({"info":"Invalid SSID or password"})");
+        return ESP_FAIL;
+    }
+
+    if(wifi_mgr.set_sta_config(ssid, password) != ESP_OK) {
+        esp_web_serv::set_status(req, HTTPD_500);
+        esp_web_serv::set_type(req, HTTPD_TYPE_JSON);
+        esp_web_serv::send_body(req, R"({"info":"Failed to set WiFi connection"})");
+        return ESP_FAIL;
+    }
+
+    esp_web_serv::set_status(req, HTTPD_200);
+    esp_web_serv::set_type(req, HTTPD_TYPE_JSON);
+    esp_web_serv::send_body(req, R"({"info":"Done"})");
+    return ESP_OK;
 }
 
 esp_err_t rest_controller::on_status_get(httpd_req_t *req)
@@ -23,8 +69,8 @@ esp_err_t rest_controller::on_status_get(httpd_req_t *req)
     }
 
     json_buf["ssid"] = config.sta.ssid;
-    json_buf["sdk_ver"] = esp_get_idf_version();
-    json_buf["free_heap"] = esp_get_free_heap_size();
+    json_buf["sdk"] = esp_get_idf_version();
+    json_buf["heap"] = esp_get_free_heap_size();
     char json_str[128] = { 0 };
     serializeJson(json_buf, json_str);
     esp_web_serv::set_type(req, HTTPD_TYPE_JSON);
