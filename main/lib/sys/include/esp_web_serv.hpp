@@ -6,7 +6,7 @@
 
 #include <esp_http_server.h>
 
-namespace net_ctrl
+namespace sys
 {
     class esp_web_serv
     {

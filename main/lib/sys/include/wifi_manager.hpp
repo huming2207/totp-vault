@@ -7,7 +7,7 @@
 #include <freertos/event_groups.h>
 #include <esp_wifi.h>
 
-namespace net_ctrl
+namespace sys
 {
     namespace def
     {

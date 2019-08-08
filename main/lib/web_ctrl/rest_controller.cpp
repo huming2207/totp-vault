@@ -6,7 +6,7 @@
 #include "rest_controller.hpp"
 
 using namespace web_ctrl;
-using namespace net_ctrl;
+using namespace sys;
 
 esp_err_t rest_controller::on_wifi_set(httpd_req_t *req)
 {
@@ -59,7 +59,7 @@ esp_err_t rest_controller::on_wifi_set(httpd_req_t *req)
 
 esp_err_t rest_controller::on_status_get(httpd_req_t *req)
 {
-    auto &wifi_mgr = net_ctrl::wifi_manager::get_manager();
+    auto &wifi_mgr = sys::wifi_manager::get_manager();
     StaticJsonDocument<256> json_buf;
 
     wifi_config_t config;

@@ -13,7 +13,7 @@ namespace web_ctrl
             rest_controller();
 
         private:
-            net_ctrl::esp_web_serv server;
+            sys::esp_web_serv server;
             esp_err_t on_wifi_set(httpd_req_t *req);
             esp_err_t on_status_get(httpd_req_t *req);
             esp_err_t on_totp_set(httpd_req_t *req);
