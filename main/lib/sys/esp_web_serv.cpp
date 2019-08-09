@@ -63,14 +63,22 @@ esp_err_t esp_web_serv::on_error(httpd_err_code_t err_code, const std::function<
     });
 }
 
-esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::vector<uint8_t> &buf)
+esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::vector<uint8_t> &buf,
+                                    const std::string& status, const std::string& type)
 {
-    return httpd_resp_send(req, (const char *)buf.data(), buf.size());
+    esp_err_t ret = httpd_resp_set_type(req, type.c_str());
+    ret = ret ?: httpd_resp_set_status(req, status.c_str());
+    ret = ret ?: httpd_resp_send(req, (const char *)buf.data(), buf.size());
+    return ret;
 }
 
-esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::string &buf)
+esp_err_t esp_web_serv::send_body(httpd_req_t *req, const std::string &buf,
+                                    const std::string& status, const std::string& type)
 {
-    return httpd_resp_sendstr(req, buf.c_str());
+    esp_err_t ret = httpd_resp_set_type(req, type.c_str());
+    ret = ret ?: httpd_resp_set_status(req, status.c_str());
+    ret = ret ?: httpd_resp_sendstr(req, buf.c_str());
+    return ret;
 }
 
 esp_err_t esp_web_serv::set_header(httpd_req_t *req, const std::map<std::string, std::string> &headers)
