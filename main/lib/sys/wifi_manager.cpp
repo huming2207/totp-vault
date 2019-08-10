@@ -36,6 +36,7 @@ wifi_manager::wifi_manager()
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    cfg.beacon_max_len = 1024;
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
     // Register WiFi event handler
@@ -167,7 +168,7 @@ esp_err_t wifi_manager::set_cheers_payload()
     std::memcpy(vendor_data->vendor_oui, &vendor_oui, sizeof(vendor_oui));
     vendor_data->vendor_oui_type = 0;
 
-    ret = esp_wifi_set_vendor_ie(true, WIFI_VND_IE_TYPE_BEACON, WIFI_VND_IE_ID_1, vendor_data);
+    ret = esp_wifi_set_vendor_ie(true, WIFI_VND_IE_TYPE_BEACON, WIFI_VND_IE_ID_0, vendor_data);
     if(ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set vendor IE, ret: %u", ret);
         return ret;
