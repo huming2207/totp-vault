@@ -186,3 +186,45 @@ esp_err_t wifi_manager::get_sta_config(wifi_config_t &config)
 {
     return esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
 }
+
+esp_err_t wifi_manager::send_action_frame(esp_interface_t interface,
+                                        const std::vector<uint8_t> &payload, const std::array<uint8_t, 6>& recv_addr,
+                                        const std::array<uint8_t, 6>& bssid, const std::array<uint8_t, 3>& oui,
+                                        uint8_t repeat)
+{
+    uint8_t tx_mac[6] = { 0 };
+    esp_efuse_mac_get_default(tx_mac);
+
+    def::mgmt_frame_header header;
+    header.frame_type = def::FRAME_CTRL_MGMT_ACTION;
+    header.frame_flag = 0,
+    header.duration = 0;
+    std::memcpy(header.receiver_mac, recv_addr.data(), recv_addr.size());
+    std::memcpy(header.transmitter_mac, tx_mac, sizeof(tx_mac));
+    std::memcpy(header.bssid, bssid.data(), bssid.size());
+    header.seq_frag = 0; // Placeholder for now, the WiFi PHY will fill in the correct value by itself
+
+    std::vector<uint8_t> action_pld;
+
+    // Insert Action frame header
+    action_pld.insert(action_pld.end(), header.val, header.val + sizeof(def::mgmt_frame_header));
+
+    // Append Action frame type
+    action_pld.emplace_back(0x7f); // Vendor-specific Action frame
+
+    // Append OUI
+    action_pld.insert(action_pld.end(), std::make_move_iterator(oui.begin()), std::make_move_iterator(oui.end()));
+
+    // Append actual data payload
+    action_pld.insert(action_pld.end(),
+            std::make_move_iterator(payload.begin()),
+            std::make_move_iterator(payload.end()));
+
+    // Send off the buffer with repeating
+    auto ret = ESP_OK;
+    for(uint8_t idx = 0; idx < repeat; idx++) {
+        ret = ret ?: esp_wifi_80211_tx(interface, action_pld.data(), action_pld.size(), true);
+    }
+
+    return ret;
+}
