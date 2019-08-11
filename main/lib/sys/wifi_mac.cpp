@@ -56,7 +56,13 @@ esp_err_t wifi_mac::set_smoke_signal(def::device_config_state state)
 
 esp_err_t wifi_mac::unset_smoke_signal()
 {
-    return 0;
+    auto ret = esp_wifi_set_vendor_ie(false, WIFI_VND_IE_TYPE_BEACON, WIFI_VND_IE_ID_0, nullptr);
+    if(ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to unset vendor IE, ret: %u", ret);
+        return ret;
+    }
+
+    return ret;
 }
 
 wifi_mac& wifi_mac::start_send_action_frame(esp_interface_t interface, const std::vector<uint8_t> &payload)
@@ -108,7 +114,7 @@ wifi_mac& wifi_mac::start_send_action_frame(esp_interface_t interface, const std
         }
 
         vTaskDelete(nullptr); // Kill itself if signal is gone
-    }, "mac_action", 2048, this, tskIDLE_PRIORITY + 5, nullptr);
+    }, "mac_action", 3072, this, tskIDLE_PRIORITY + 5, nullptr);
 
     // Send off the buffer with repeating
     return *this;
