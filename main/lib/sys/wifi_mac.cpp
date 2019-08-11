@@ -175,3 +175,8 @@ wifi_mac &wifi_mac::set_wifi_interface(esp_interface_t interface)
     curr_interface = interface;
     return *this;
 }
+
+wifi_mac::~wifi_mac()
+{
+    xEventGroupClearBits(wifi_mac_event, WIFI_MAC_ACTION_STARTED);
+}

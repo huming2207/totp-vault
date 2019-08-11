@@ -63,14 +63,15 @@ namespace sys
 
     class wifi_mac
     {
-        // Singleton related
+        // Hidden default constructor
         private:
             wifi_mac();
+            ~wifi_mac();
 
         // Private members
         private:
             std::array<uint8_t, 6> rx_addr = WIFI_MAC_BROADCAST_ADDR;
-            std::array<uint8_t, 6> tx_addr;
+            std::array<uint8_t, 6> tx_addr{};
             std::array<uint8_t, 6> bssid_addr = WIFI_MAC_BROADCAST_ADDR;
             std::array<uint8_t, 3> oui = WIFI_MAC_DEFAULT_OUI;
             esp_interface_t curr_interface = ESP_IF_WIFI_AP;
