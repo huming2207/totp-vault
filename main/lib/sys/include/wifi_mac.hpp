@@ -12,7 +12,6 @@
 #define WIFI_MAC_BROADCAST_ADDR { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }
 #define WIFI_MAC_DEFAULT_OUI    { 0x18, 0xfe, 0x34 }
 
-#define WIFI_MAC_ACTION_STARTED BIT0
 
 namespace sys
 {
@@ -66,7 +65,6 @@ namespace sys
         // Hidden default constructor
         private:
             wifi_mac();
-            ~wifi_mac();
 
         // Private members
         private:
@@ -76,7 +74,6 @@ namespace sys
             std::array<uint8_t, 3> oui = WIFI_MAC_DEFAULT_OUI;
             esp_interface_t curr_interface = ESP_IF_WIFI_AP;
             std::vector<uint8_t> action_payload;
-            static EventGroupHandle_t wifi_mac_event;
 
         // Singleton related
         public:
@@ -88,8 +85,8 @@ namespace sys
         public:
             esp_err_t set_smoke_signal(def::device_config_state state);
             esp_err_t unset_smoke_signal();
-            wifi_mac& start_send_action_frame(esp_interface_t interface, const std::vector<uint8_t> &payload);
-            wifi_mac& stop_send_action_frame();
+            esp_err_t send_action_frame(esp_interface_t interface,
+                                        const std::vector<uint8_t> &payload, uint8_t count = 5);
 
         // Setter & builders
         public:
