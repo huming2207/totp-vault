@@ -100,26 +100,26 @@ esp_err_t wifi_mac::send_action_frame(esp_interface_t interface,
     return ret;
 }
 
-wifi_mac &wifi_mac::set_receiver_addr(const std::array<uint8_t, 6> &_rx_addr)
+wifi_mac &wifi_mac::set_receiver_addr(const addr_array& _rx_addr)
 {
     // Ignore setting request if the action frame sender thread has started
     rx_addr = _rx_addr;
     return *this;
 }
 
-wifi_mac &wifi_mac::set_transmitter_addr(const std::array<uint8_t, 6> &_tx_addr)
+wifi_mac &wifi_mac::set_transmitter_addr(const addr_array& _tx_addr)
 {
     tx_addr = _tx_addr;
     return *this;
 }
 
-wifi_mac &wifi_mac::set_bssid_addr(const std::array<uint8_t, 6> &_bssid_addr)
+wifi_mac &wifi_mac::set_bssid_addr(const addr_array& _bssid_addr)
 {
     bssid_addr = _bssid_addr;
     return *this;
 }
 
-wifi_mac &wifi_mac::set_oui(const std::array<uint8_t, 3> &_oui)
+wifi_mac &wifi_mac::set_oui(const oui_array& _oui)
 {
     oui = _oui;
     return *this;
@@ -135,5 +135,36 @@ wifi_mac &wifi_mac::set_wifi_interface(esp_interface_t interface)
 {
     curr_interface = interface;
     return *this;
+}
+
+wifi_mac& wifi_mac::on_smoke_signal(const std::function<void(def::smoke_signal, addr_array, int)> &cb)
+{
+    smoke_cb = cb;
+    esp_wifi_set_vendor_ie_cb([](void *ctx, wifi_vendor_ie_type_t type,
+                                 const uint8_t sa[6], const vendor_ie_data_t *vnd_ie, int rssi)
+    {
+        auto *mac = static_cast<wifi_mac *>(ctx);
+
+        // Block RSSI that is weaker than the threshold
+        if(rssi < mac->rssi_thresh) return;
+
+        // Cast vendor IE packet to Smoke Signal struct
+        def::smoke_signal buf{};
+        std::memcpy(&buf, vnd_ie, sizeof(def::smoke_signal));
+
+        // Filter out other unnecessary stuff
+        if(buf.vendor_oui_type != 2) return;
+        if(std::memcmp(buf.vendor_oui, mac->oui.data(), mac->oui.size()) != 0) return;
+
+        // Call the callback when it finishes
+        mac->smoke_cb(buf, { MAC2STR(sa) }, rssi);
+    }, this);
+    return *this;
+}
+
+wifi_mac::~wifi_mac()
+{
+    esp_wifi_set_vendor_ie_cb([](void *ctx, wifi_vendor_ie_type_t type,
+                                 const uint8_t sa[6], const vendor_ie_data_t *vnd_ie, int rssi){}, nullptr);
 }
 

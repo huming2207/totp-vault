@@ -8,6 +8,7 @@
 #include <freertos/event_groups.h>
 #include <esp_wifi.h>
 #include <esp_err.h>
+#include <functional>
 
 #define WIFI_MAC_BROADCAST_ADDR { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }
 #define WIFI_MAC_DEFAULT_OUI    { 0x18, 0xfe, 0x34 }
@@ -60,20 +61,26 @@ namespace sys
         } mgmt_frame_header;
     }
 
+    using addr_array = std::array<uint8_t, 6> ;
+    using oui_array = std::array<uint8_t, 3> ;
+
     class wifi_mac
     {
         // Hidden default constructor
         private:
             wifi_mac();
+            ~wifi_mac();
 
         // Private members
         private:
-            std::array<uint8_t, 6> rx_addr = WIFI_MAC_BROADCAST_ADDR;
-            std::array<uint8_t, 6> tx_addr{};
-            std::array<uint8_t, 6> bssid_addr = WIFI_MAC_BROADCAST_ADDR;
-            std::array<uint8_t, 3> oui = WIFI_MAC_DEFAULT_OUI;
+            addr_array rx_addr = WIFI_MAC_BROADCAST_ADDR;
+            addr_array tx_addr{};
+            addr_array bssid_addr = WIFI_MAC_BROADCAST_ADDR;
+            oui_array oui = WIFI_MAC_DEFAULT_OUI;
             esp_interface_t curr_interface = ESP_IF_WIFI_AP;
             std::vector<uint8_t> action_payload;
+            std::function<void(def::smoke_signal, addr_array, int)> smoke_cb{};
+            int rssi_thresh;
 
         // Singleton related
         public:
@@ -90,12 +97,14 @@ namespace sys
 
         // Setter & builders
         public:
-            wifi_mac& set_receiver_addr(const std::array<uint8_t, 6>& _rx_addr);
-            wifi_mac& set_transmitter_addr(const std::array<uint8_t, 6>& _tx_addr);
-            wifi_mac& set_bssid_addr(const std::array<uint8_t, 6>& _bssid_addr);
-            wifi_mac& set_oui(const std::array<uint8_t, 3>& _oui);
+            wifi_mac& set_receiver_addr(const addr_array& _rx_addr);
+            wifi_mac& set_transmitter_addr(const addr_array& _tx_addr);
+            wifi_mac& set_bssid_addr(const addr_array& _bssid_addr);
+            wifi_mac& set_oui(const oui_array& _oui);
             wifi_mac& set_action_payload(const std::vector<uint8_t>& payload);
             wifi_mac& set_wifi_interface(esp_interface_t interface);
+            wifi_mac& set_rssi_thresh(int thresh);
+            wifi_mac& on_smoke_signal(const std::function<void(def::smoke_signal, addr_array, int)>& cb);
     };
 }
 
