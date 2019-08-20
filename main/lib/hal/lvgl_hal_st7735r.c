@@ -76,8 +76,6 @@ typedef struct {
  * Combination of Rcmd1 + Rcmd2Green + Rcmd3
  */
 static const st7735s_init_t st7735s_init_seq[] = {
-    { ST7735_SWRESET, {  }, 0  },   // Software RESET
-    { ST7735_SLPOUT, {  }, 0  },    // Disable Sleep mode
     { ST7735_FRMCTR1, { 0x01, 0x2c, 0x2d }, 3 },
     { ST7735_FRMCTR2, { 0x01, 0x2c, 0x2d }, 3 },
     { ST7735_FRMCTR3, { 0x01, 0x2c, 0x2d, 0x01, 0x2c, 0x2d }, 6 },
@@ -91,6 +89,20 @@ static const st7735s_init_t st7735s_init_seq[] = {
     { ST7735_INVOFF, {  }, 0 },
     { ST7735_MADCTL, { 0xc8 }, 1 },
     { ST7735_COLMOD, { 0x05 }, 1 },
+    { ST7735_CASET,  { 0x00, 0x00, 0x00, 0x4f }, 4 },
+    { ST7735_RASET,  { 0x00, 0x00, 0x00, 0x9f }, 4 },
+    { ST7735_GMCTRP1, {
+        0x02, 0x1c, 0x07, 0x12,
+        0x37, 0x32, 0x29, 0x2d,
+        0x29, 0x25, 0x2B, 0x39,
+        0x00, 0x01, 0x03, 0x10,
+    }, 16 },
+    { ST7735_GMCTRN1, {
+        0x03, 0x1d, 0x07, 0x06,
+        0x2E, 0x2C, 0x29, 0x2D,
+        0x2E, 0x2E, 0x37, 0x3F,
+        0x00, 0x00, 0x02, 0x10,
+    }, 16 },
 };
 
 static void st7735r_spi_send_bytes(const uint8_t *payload, size_t len, bool is_cmd)
@@ -113,7 +125,7 @@ static void st7735r_spi_send_bytes(const uint8_t *payload, size_t len, bool is_c
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
-static void st7735r_send_init_seq(st7735s_init_t *seq)
+static void st7735r_send_init_seq(const st7735s_init_t *seq)
 {
     if(!seq) {
         ESP_LOGE(LOG_TAG, "Sequence is null!");
@@ -165,5 +177,27 @@ void lvgl_st7735r_init()
     ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &device_config, &device_handle));
     ESP_LOGI(LOG_TAG, "SPI initialization finished, sending init sequence to IPS panel...");
 
-    //
+    // Software reset
+    const uint8_t reset_cmd = ST7735_SWRESET;
+    st7735r_spi_send_bytes(&reset_cmd, 1, true);
+    vTaskDelay(pdMS_TO_TICKS(150));
+
+    // Wake up
+    const uint8_t slpout_cmd = ST7735_SLPOUT;
+    st7735r_spi_send_bytes(&slpout_cmd, 1, true);
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    // Send off the init sequence
+    for(size_t idx = 0; idx < (sizeof(st7735s_init_seq) / sizeof(st7735s_init_seq[0])); idx++) {
+        st7735r_send_init_seq(&st7735s_init_seq[idx]);
+    }
+
+    // Normal display ON
+    const uint8_t nor_on = ST7735_NORON;
+    st7735r_spi_send_bytes(&nor_on, 1, true);
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    const uint8_t disp_on = ST7735_DISPON;
+    st7735r_spi_send_bytes(&disp_on, 1, true);
+    vTaskDelay(pdMS_TO_TICKS(100));
 }
