@@ -125,6 +125,11 @@ static void st7735r_spi_send_bytes(const uint8_t *payload, size_t len, bool is_c
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
+static void st7735r_spi_send_cmd(uint8_t payload)
+{
+    st7735r_spi_send_bytes(&payload, 1, true);
+}
+
 static void st7735r_send_init_seq(const st7735s_init_t *seq)
 {
     if(!seq) {
@@ -178,13 +183,11 @@ void lvgl_st7735r_init()
     ESP_LOGI(LOG_TAG, "SPI initialization finished, sending init sequence to IPS panel...");
 
     // Software reset
-    const uint8_t reset_cmd = ST7735_SWRESET;
-    st7735r_spi_send_bytes(&reset_cmd, 1, true);
+    st7735r_spi_send_cmd(ST7735_SWRESET);
     vTaskDelay(pdMS_TO_TICKS(150));
 
     // Wake up
-    const uint8_t slpout_cmd = ST7735_SLPOUT;
-    st7735r_spi_send_bytes(&slpout_cmd, 1, true);
+    st7735r_spi_send_cmd(ST7735_SLPOUT);
     vTaskDelay(pdMS_TO_TICKS(500));
 
     // Send off the init sequence
@@ -193,11 +196,9 @@ void lvgl_st7735r_init()
     }
 
     // Normal display ON
-    const uint8_t nor_on = ST7735_NORON;
-    st7735r_spi_send_bytes(&nor_on, 1, true);
+    st7735r_spi_send_cmd(ST7735_NORON);
     vTaskDelay(pdMS_TO_TICKS(10));
 
-    const uint8_t disp_on = ST7735_DISPON;
-    st7735r_spi_send_bytes(&disp_on, 1, true);
+    st7735r_spi_send_cmd(ST7735_DISPON);
     vTaskDelay(pdMS_TO_TICKS(100));
 }
