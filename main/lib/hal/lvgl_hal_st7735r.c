@@ -1,5 +1,4 @@
 #include <string.h>
-#include <memory.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -7,6 +6,7 @@
 #include <esp_log.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <lvgl.h>
 
 #include "lvgl_hal_st7735r.h"
 
@@ -143,6 +143,62 @@ static void st7735r_send_init_seq(const st7735s_init_t *seq)
     if(seq->len > 0) {
         st7735r_spi_send_bytes(seq->data, seq->len, false);
     }
+}
+
+static void st7735r_set_addr_window(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
+{
+    uint8_t x_start[] = {(uint8_t)(x1 >> 8u), (uint8_t)(x1 & 0xffU)};
+    uint8_t x_end[] = {(uint8_t)(x2 >> 8u), (uint8_t)(x2 & 0xffU)};
+    uint8_t y_start[] = {(uint8_t)(y1 >> 8u), (uint8_t)(y1 & 0xffU)};
+    uint8_t y_end[] = {(uint8_t)(y2 >> 8u), (uint8_t)(y2 & 0xffU)};
+
+    ESP_LOGD(LOG_TAG, "Setting position in: "
+                      "x1: 0x%02X, x2: 0x%02X; y1: 0x%02X, y2: 0x%02X", x1, x2, y1, y2);
+
+    st7735r_spi_send_cmd(ST7735_CASET);
+    st7735r_spi_send_bytes(x_start, 2, false);
+    st7735r_spi_send_bytes(x_end, 2, false);
+
+    st7735r_spi_send_cmd(ST7735_RASET);
+    st7735r_spi_send_bytes(y_start, 2, false);
+    st7735r_spi_send_bytes(y_end, 2, false);
+
+    ESP_LOGD(LOG_TAG, "Position set!");
+}
+
+static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
+{
+    if(!payload) {
+        ESP_LOGE(LOG_TAG, "Payload is null!");
+        return;
+    }
+
+    spi_transaction_t spi_tract;
+    memset(&spi_tract, 0, sizeof(spi_tract));
+
+    spi_tract.tx_buffer = payload;
+    spi_tract.length = len * 8;
+    spi_tract.rxlength = 0;
+
+    // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
+    ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_DC, 1));
+    ESP_ERROR_CHECK(spi_device_polling_transmit(device_handle, &spi_tract)); // Use blocking transmit for now (easier to debug)
+    // ESP_LOGD(LOG_TAG, "SPI payload sent!");
+}
+
+
+void lvgl_st7735r_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color)
+{
+    uint32_t line_size = area->x2 - area->x1 + 1;
+    st7735r_set_addr_window(area->x1, area->x2, area->y1, area->y2);
+    st7735r_spi_send_cmd(ST7735_RAMWR);
+
+    for(uint32_t curr_y = area->y1; curr_y <= area->y2; curr_y++) {
+        st7735r_spi_send_pixel(&color->full, line_size * 2);
+        color += line_size;
+    }
+
+    lv_disp_flush_ready(disp_drv);
 }
 
 void lvgl_st7735r_init()
