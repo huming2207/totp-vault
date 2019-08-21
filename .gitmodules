@@ -4,6 +4,3 @@
 [submodule "components/totp"]
 	path = components/totp
 	url = git@github.com:huming2207/esp-totp.git
-[submodule "components/fp1020a"]
-	path = components/fp1020a
-	url = git@github.com:huming2207/esp-fp1020a.git
