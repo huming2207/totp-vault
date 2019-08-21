@@ -219,7 +219,7 @@ void lvgl_st7735r_init()
             .miso_io_num = -1, // We don't need to get any bullshit from the panel, so no MISO needed.
             .quadhd_io_num = -1,
             .quadwp_io_num = -1,
-            .max_transfer_sz = 80 * 160 * 3
+            .max_transfer_sz = ST7735R_BUF_SIZE * 2
     };
 
     spi_device_interface_config_t device_config = {
