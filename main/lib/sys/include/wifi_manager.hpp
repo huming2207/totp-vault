@@ -1,17 +1,18 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <esp_wifi.h>
+#include <array>
 
-namespace web_ctrl
+namespace sys
 {
     namespace def
     {
-        enum wifi_event_bit
-        {
+        enum wifi_event_bit {
             WIFI_STA_CONNECTED                  = BIT0,
             WIFI_STA_CONNECTED_IPV6             = BIT1,
             WIFI_AP_DEVICE_CONNECT              = BIT2,
@@ -27,9 +28,11 @@ namespace web_ctrl
             void operator=(wifi_manager const&) = delete;
             static wifi_manager& get_manager();
             esp_err_t set_ap_config(const std::string &ssid, const std::string &passwd, uint8_t channel);
-            esp_err_t set_sta_config(const std::string &ssid, const std::string &passwd, bool fast_scan);
+            esp_err_t set_sta_config(const std::string &ssid, const std::string &passwd, bool fast_scan = false);
             esp_err_t start(wifi_mode_t mode = WIFI_MODE_AP);
             esp_err_t stop();
+            esp_err_t get_sta_config(wifi_config_t &config);
+            esp_err_t get_ap_config(wifi_config_t &config);
 
         private:
             wifi_manager();

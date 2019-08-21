@@ -7,7 +7,7 @@
 
 #define TAG "wifi_mgr"
 
-using namespace web_ctrl;
+using namespace sys;
 
 uint8_t wifi_manager::sta_max_retry = 5;
 ip_addr_t wifi_manager::ip_addr = {};
@@ -102,7 +102,8 @@ esp_err_t wifi_manager::set_ap_config(const std::string &ssid, const std::string
     std::strcpy(reinterpret_cast<char *>(wifi_config.ap.password), passwd.c_str());
     wifi_config.ap.ssid_len = ssid.size();
 
-    auto ret = esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+    auto ret = esp_wifi_set_mode(WIFI_MODE_AP);
+    ret = ret ?: esp_wifi_set_storage(WIFI_STORAGE_FLASH);
     ret = ret ?: esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
     return ret;
 }
@@ -114,7 +115,8 @@ esp_err_t wifi_manager::set_sta_config(const std::string &ssid, const std::strin
     std::strcpy(reinterpret_cast<char *>(wifi_config.sta.password), passwd.c_str());
     wifi_config.sta.scan_method = fast_scan ? WIFI_FAST_SCAN : WIFI_ALL_CHANNEL_SCAN;
 
-    auto ret = esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+    auto ret = esp_wifi_set_mode(WIFI_MODE_STA);
+    ret = ret ?: esp_wifi_set_storage(WIFI_STORAGE_FLASH);
     ret = ret ?: esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
     return ret;
 }
@@ -126,6 +128,8 @@ esp_err_t wifi_manager::start(wifi_mode_t mode)
     return ret;
 }
 
+
+
 wifi_manager& wifi_manager::get_manager()
 {
     static wifi_manager instance;
@@ -135,4 +139,14 @@ wifi_manager& wifi_manager::get_manager()
 esp_err_t wifi_manager::stop()
 {
     return esp_wifi_stop();
+}
+
+esp_err_t wifi_manager::get_ap_config(wifi_config_t &config)
+{
+    return esp_wifi_get_config(ESP_IF_WIFI_AP, &config);
+}
+
+esp_err_t wifi_manager::get_sta_config(wifi_config_t &config)
+{
+    return esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
 }
