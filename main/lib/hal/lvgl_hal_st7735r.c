@@ -12,6 +12,10 @@
 
 #define  LOG_TAG "st7735"
 
+// M5StickC's ST7735R 80*160 panel memory region offset
+#define ST7735_M5C_COL_OFFSET 26
+#define ST7735_M5C_ROW_OFFSET 1
+
 // ST7735 specific commands used in init
 #define ST7735_NOP     0x00
 #define ST7735_SWRESET 0x01
@@ -147,6 +151,11 @@ static void st7735r_send_init_seq(const st7735s_init_t *seq)
 
 static void st7735r_set_addr_window(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
+    x1 += ST7735_M5C_COL_OFFSET;
+    x2 += ST7735_M5C_COL_OFFSET;
+    y1 += ST7735_M5C_ROW_OFFSET;
+    y2 += ST7735_M5C_ROW_OFFSET;
+
     uint8_t x_start[] = {(uint8_t)(x1 >> 8u), (uint8_t)(x1 & 0xffU)};
     uint8_t x_end[] = {(uint8_t)(x2 >> 8u), (uint8_t)(x2 & 0xffU)};
     uint8_t y_start[] = {(uint8_t)(y1 >> 8u), (uint8_t)(y1 & 0xffU)};
@@ -177,7 +186,7 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
     memset(&spi_tract, 0, sizeof(spi_tract));
 
     spi_tract.tx_buffer = payload;
-    spi_tract.length = len * 8;
+    spi_tract.length = len * 16;
     spi_tract.rxlength = 0;
 
     // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
@@ -193,7 +202,7 @@ void lvgl_st7735r_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_co
     st7735r_spi_send_cmd(ST7735_RAMWR);
 
     for(uint32_t curr_y = area->y1; curr_y <= area->y2; curr_y++) {
-        st7735r_spi_send_pixel(&color->full, line_size * 2);
+        st7735r_spi_send_pixel(&color->full, line_size);
         color += line_size;
     }
 
@@ -223,7 +232,7 @@ void lvgl_st7735r_init()
 
     spi_device_interface_config_t device_config = {
 #ifndef CONFIG_LVGL_SPI_CLK_DEBUG
-            .clock_speed_hz = SPI_MASTER_FREQ_40M,
+            .clock_speed_hz = SPI_MASTER_FREQ_26M,
 #else
             .clock_speed_hz = SPI_MASTER_FREQ_8M,
 #endif
@@ -257,10 +266,11 @@ void lvgl_st7735r_init()
     st7735r_spi_send_cmd(ST7735_DISPON);
     vTaskDelay(pdMS_TO_TICKS(100));
 
-    // Fill screen with white color
-    st7735r_set_addr_window(0x00, 0x9f, 0x00, 0x4f);
-    const uint16_t white = 0xffff;
-    for(uint16_t idx = 0; idx < (80 * 160); idx++) {
+    // Fill screen
+    st7735r_set_addr_window(0, 0x4f, 0, 0x9f);
+    st7735r_spi_send_cmd(ST7735_RAMWR);
+    const uint16_t white = 0x0000;
+    for(uint32_t idx = 0; idx < (80 * 160 * 2); idx++) {
         st7735r_spi_send_pixel(&white, 1);
     }
 }
