@@ -219,7 +219,7 @@ void lvgl_st7735r_init()
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_RST, 0));
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_RST, 1));
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(150));
 
     spi_bus_config_t bus_config = {
             .mosi_io_num = CONFIG_LVGL_SPI_MOSI,
@@ -246,13 +246,9 @@ void lvgl_st7735r_init()
     ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &device_config, &device_handle));
     ESP_LOGI(LOG_TAG, "SPI initialization finished, sending init sequence to IPS panel...");
 
-    // Software reset
-    st7735r_spi_send_cmd(ST7735_SWRESET);
-    vTaskDelay(pdMS_TO_TICKS(150));
-
     // Wake up
     st7735r_spi_send_cmd(ST7735_SLPOUT);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     // Send off the init sequence
     for(size_t idx = 0; idx < (sizeof(st7735s_init_seq) / sizeof(st7735s_init_seq[0])); idx++) {
