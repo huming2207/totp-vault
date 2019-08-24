@@ -177,7 +177,7 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
     memset(&spi_tract, 0, sizeof(spi_tract));
 
     spi_tract.tx_buffer = payload;
-    spi_tract.length = len * 8;
+    spi_tract.length = len * 16;
     spi_tract.rxlength = 0;
 
     // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
@@ -185,7 +185,6 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
     ESP_ERROR_CHECK(spi_device_polling_transmit(device_handle, &spi_tract)); // Use blocking transmit for now (easier to debug)
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
-
 
 void lvgl_st7735r_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color)
 {
@@ -234,8 +233,8 @@ void lvgl_st7735r_init()
     };
 
     ESP_LOGI(LOG_TAG, "Performing SPI init...");
-    ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &bus_config, 1));
-    ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &device_config, &device_handle));
+    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &bus_config, 1));
+    ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &device_config, &device_handle));
     ESP_LOGI(LOG_TAG, "SPI initialization finished, sending init sequence to IPS panel...");
 
     // Software reset
@@ -257,4 +256,11 @@ void lvgl_st7735r_init()
 
     st7735r_spi_send_cmd(ST7735_DISPON);
     vTaskDelay(pdMS_TO_TICKS(100));
+
+    // Fill screen with white color
+    st7735r_set_addr_window(0x00, 0x9f, 0x00, 0x4f);
+    const uint16_t white = 0xffff;
+    for(uint16_t idx = 0; idx < (80 * 160); idx++) {
+        st7735r_spi_send_pixel(&white, 1);
+    }
 }
