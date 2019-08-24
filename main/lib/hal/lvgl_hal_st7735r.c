@@ -261,12 +261,4 @@ void lvgl_st7735r_init()
 
     st7735r_spi_send_cmd(ST7735_DISPON);
     vTaskDelay(pdMS_TO_TICKS(100));
-
-    // Fill screen
-    st7735r_set_addr_window(0, 0x4f, 0, 0x9f);
-    st7735r_spi_send_cmd(ST7735_RAMWR);
-    const uint16_t white = 0x0000;
-    for(uint32_t idx = 0; idx < (80 * 160 * 2); idx++) {
-        st7735r_spi_send_pixel(&white, 1);
-    }
 }
