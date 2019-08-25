@@ -91,7 +91,7 @@ static const st7735s_init_t st7735s_init_seq[] = {
     { ST7735_PWCTR5, { 0x8a, 0xee }, 2 },
     { ST7735_VMCTR1, { 0x0e }, 1 },
     { ST7735_INVON, {  }, 0 },
-    { ST7735_MADCTL, { 0x08 }, 1 }, // Normal memory write order, BGR filter panel
+    { ST7735_MADCTL, { 0xa8 }, 1 }, // Normal memory write order, BGR filter panel
     { ST7735_COLMOD, { 0x05 }, 1 }, // 16 bit RGB
     { ST7735_CASET,  { 0x00, 0x00, 0x00, 0x4f }, 4 },
     { ST7735_RASET,  { 0x00, 0x00, 0x00, 0x9f }, 4 },
@@ -151,10 +151,10 @@ static void st7735r_send_init_seq(const st7735s_init_t *seq)
 
 static void st7735r_set_addr_window(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
-    x1 += ST7735_M5C_COL_OFFSET;
-    x2 += ST7735_M5C_COL_OFFSET;
-    y1 += ST7735_M5C_ROW_OFFSET;
-    y2 += ST7735_M5C_ROW_OFFSET;
+    y1 += ST7735_M5C_COL_OFFSET;
+    y2 += ST7735_M5C_COL_OFFSET;
+    x1 += ST7735_M5C_ROW_OFFSET;
+    x2 += ST7735_M5C_ROW_OFFSET;
 
     uint8_t x_start[] = {(uint8_t)(x1 >> 8u), (uint8_t)(x1 & 0xffU)};
     uint8_t x_end[] = {(uint8_t)(x2 >> 8u), (uint8_t)(x2 & 0xffU)};
