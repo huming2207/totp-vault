@@ -12,6 +12,10 @@
 
 #define  LOG_TAG "st7735"
 
+// M5StickC's ST7735R 80*160 panel memory region offset
+#define ST7735_M5C_COL_OFFSET 26
+#define ST7735_M5C_ROW_OFFSET 1
+
 // ST7735 specific commands used in init
 #define ST7735_NOP     0x00
 #define ST7735_SWRESET 0x01
@@ -86,9 +90,9 @@ static const st7735s_init_t st7735s_init_seq[] = {
     { ST7735_PWCTR4, { 0x8a, 0x2a }, 2 },
     { ST7735_PWCTR5, { 0x8a, 0xee }, 2 },
     { ST7735_VMCTR1, { 0x0e }, 1 },
-    { ST7735_INVOFF, {  }, 0 },
-    { ST7735_MADCTL, { 0xc8 }, 1 },
-    { ST7735_COLMOD, { 0x05 }, 1 },
+    { ST7735_INVON, {  }, 0 },
+    { ST7735_MADCTL, { 0xa8 }, 1 }, // Normal memory write order, BGR filter panel
+    { ST7735_COLMOD, { 0x05 }, 1 }, // 16 bit RGB
     { ST7735_CASET,  { 0x00, 0x00, 0x00, 0x4f }, 4 },
     { ST7735_RASET,  { 0x00, 0x00, 0x00, 0x9f }, 4 },
     { ST7735_GMCTRP1, {
@@ -147,6 +151,11 @@ static void st7735r_send_init_seq(const st7735s_init_t *seq)
 
 static void st7735r_set_addr_window(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
+    y1 += ST7735_M5C_COL_OFFSET;
+    y2 += ST7735_M5C_COL_OFFSET;
+    x1 += ST7735_M5C_ROW_OFFSET;
+    x2 += ST7735_M5C_ROW_OFFSET;
+
     uint8_t x_start[] = {(uint8_t)(x1 >> 8u), (uint8_t)(x1 & 0xffU)};
     uint8_t x_end[] = {(uint8_t)(x2 >> 8u), (uint8_t)(x2 & 0xffU)};
     uint8_t y_start[] = {(uint8_t)(y1 >> 8u), (uint8_t)(y1 & 0xffU)};
@@ -177,7 +186,7 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
     memset(&spi_tract, 0, sizeof(spi_tract));
 
     spi_tract.tx_buffer = payload;
-    spi_tract.length = len * 8;
+    spi_tract.length = len * 16;
     spi_tract.rxlength = 0;
 
     // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
@@ -186,7 +195,6 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
-
 void lvgl_st7735r_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color)
 {
     uint32_t line_size = area->x2 - area->x1 + 1;
@@ -194,7 +202,7 @@ void lvgl_st7735r_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_co
     st7735r_spi_send_cmd(ST7735_RAMWR);
 
     for(uint32_t curr_y = area->y1; curr_y <= area->y2; curr_y++) {
-        st7735r_spi_send_pixel(&color->full, line_size * 2);
+        st7735r_spi_send_pixel(&color->full, line_size);
         color += line_size;
     }
 
@@ -211,7 +219,7 @@ void lvgl_st7735r_init()
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_RST, 0));
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_RST, 1));
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(150));
 
     spi_bus_config_t bus_config = {
             .mosi_io_num = CONFIG_LVGL_SPI_MOSI,
@@ -224,7 +232,7 @@ void lvgl_st7735r_init()
 
     spi_device_interface_config_t device_config = {
 #ifndef CONFIG_LVGL_SPI_CLK_DEBUG
-            .clock_speed_hz = SPI_MASTER_FREQ_40M,
+            .clock_speed_hz = SPI_MASTER_FREQ_26M,
 #else
             .clock_speed_hz = SPI_MASTER_FREQ_8M,
 #endif
@@ -234,17 +242,13 @@ void lvgl_st7735r_init()
     };
 
     ESP_LOGI(LOG_TAG, "Performing SPI init...");
-    ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &bus_config, 1));
-    ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &device_config, &device_handle));
+    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &bus_config, 1));
+    ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &device_config, &device_handle));
     ESP_LOGI(LOG_TAG, "SPI initialization finished, sending init sequence to IPS panel...");
-
-    // Software reset
-    st7735r_spi_send_cmd(ST7735_SWRESET);
-    vTaskDelay(pdMS_TO_TICKS(150));
 
     // Wake up
     st7735r_spi_send_cmd(ST7735_SLPOUT);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     // Send off the init sequence
     for(size_t idx = 0; idx < (sizeof(st7735s_init_seq) / sizeof(st7735s_init_seq[0])); idx++) {
