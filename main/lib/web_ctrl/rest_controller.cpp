@@ -80,16 +80,6 @@ esp_err_t rest_controller::on_totp_get(httpd_req_t *req)
     return 0;
 }
 
-esp_err_t rest_controller::on_fp_set(httpd_req_t *req)
-{
-    return 0;
-}
-
-esp_err_t rest_controller::on_fp_get(httpd_req_t *req)
-{
-    return 0;
-}
-
 rest_controller::rest_controller()
 {
     server.on("/status", HTTP_GET, [this](httpd_req_t *req){ return on_status_get(req); });
