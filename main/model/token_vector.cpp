@@ -25,7 +25,7 @@ token_vector::token_vector()
         nvs_entry_info(uri_it, &info);
         uri_it = nvs_entry_next(uri_it);
         if(nvs_get_str(handle, info.key, uri_str, &uri_len) == ESP_OK) {
-            emplace_back(key_uri(uri_str));
+            emplace_back(otp_key(uri_str));
         }
 
         ESP_LOGI(TAG, "Got token: %s", info.key);
@@ -35,12 +35,12 @@ token_vector::token_vector()
 esp_err_t token_vector::save()
 {
     // Clear up the stuff in token namespace first
-    nvs_erase_all(handle);
+    auto ret = nvs_erase_all(handle);
 
     for(size_t idx = 0; idx < size(); idx++) {
-        nvs_set_str(handle, std::to_string(idx).c_str(), at(idx).get_uri().c_str());
+        ret = ret ?: nvs_set_str(handle, std::to_string(idx).c_str(), at(idx).get_uri().c_str());
     }
 
-    return 0;
+    return ret;
 }
 

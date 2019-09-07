@@ -3,11 +3,15 @@
 #include <string>
 #include <nvs_flash.h>
 #include <vector>
-#include <key_uri.hpp>
+#include <otp_key.hpp>
 
-class token_vector : private std::vector<key_uri>
+class token_vector : private std::vector<otp_key>
 {
     public:
+        using vector::emplace_back;
+        using vector::operator[];
+        using vector::begin;
+        using vector::end;
         token_vector();
         esp_err_t save();
     private:
