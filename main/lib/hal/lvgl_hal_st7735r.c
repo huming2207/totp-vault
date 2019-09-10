@@ -125,7 +125,7 @@ static void st7735r_spi_send_bytes(const uint8_t *payload, size_t len, bool is_c
 
     // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_DC, is_cmd ? 0 : 1)); // Low for CMD, High for DATA
-    ESP_ERROR_CHECK(spi_device_polling_transmit(device_handle, &spi_tract)); // Use blocking transmit for now (easier to debug)
+    ESP_ERROR_CHECK(spi_device_transmit(device_handle, &spi_tract));
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
@@ -191,7 +191,7 @@ static void st7735r_spi_send_pixel(const uint16_t *payload, size_t len)
 
     // ESP_LOGD(LOG_TAG, "Sending SPI payload, length : %d, is_cmd: %s", len, is_cmd ? "TRUE" : "FALSE");
     ESP_ERROR_CHECK(gpio_set_level(CONFIG_LVGL_IO_DC, 1));
-    ESP_ERROR_CHECK(spi_device_polling_transmit(device_handle, &spi_tract)); // Use blocking transmit for now (easier to debug)
+    ESP_ERROR_CHECK(spi_device_transmit(device_handle, &spi_tract));
     // ESP_LOGD(LOG_TAG, "SPI payload sent!");
 }
 
