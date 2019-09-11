@@ -8,6 +8,7 @@
 
 token_vector::token_vector()
 {
+    nvs_flash_init();
     ESP_ERROR_CHECK(nvs_open("token", NVS_READWRITE, &handle));
     auto uri_it = nvs_entry_find("nvs", "token", NVS_TYPE_STR);
     if(uri_it == nullptr) {
