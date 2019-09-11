@@ -1,21 +1,17 @@
 #include <cstdio>
-#include <cstring>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
-#include "esp_spi_flash.h"
 #include <esp_freertos_hooks.h>
 #include <esp_log.h>
-#include <lv_core/lv_style.h>
 
 #include "lvgl.h"
-#include "lvgl_hal_st7789.h"
 
-#include <wifi_manager.hpp>
-#include <rest_controller.hpp>
-
-#include <esp_now.h>
 #include "lvgl_hal_st7735r.h"
+
+#include <m5stickc.hpp>
+#include <otp_key.hpp>
+#include <token_vector.hpp>
 
 #define TAG "esp-lvgl"
 
@@ -43,8 +39,22 @@ void app_main()
 {
     printf("Hello world!\n");
 
-//    ESP_LOGI(TAG, "Initialising NVS");
-//    nv_storage::flash_init();
+    auto& bsp = m5stickc::get_bsp();
+    bsp.load_time();
+
+    auto& token_vec = token_vector::instance();
+    token_vec.emplace_back(otp_key("otpauth://totp/ACME%20Co:lol@example.com?"
+                                   "secret=EPTS75A5IXCAU6LX33JM56PX2AZEHZ7V&"
+                                   "issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30"));
+
+    token_vec.emplace_back(otp_key("otpauth://totp/lol:wat@sg.su?secret=H5ZUVEYU5NRVYOLYJZL553QJIEPWJJMM"
+                                   "&issuer=SmartGuude&algorithm=SHA1&digits=6&period=30"));
+
+    token_vec.emplace_back(otp_key("otpauth://totp/Oh:yes@example.com?secret=M6KPCLEQWANQDZGPSQB47BSDFZWSVLET"
+                                   "&issuer=Oh&algorithm=SHA1&digits=6&period=30"));
+
+    // NVS Write operation works if LVGL is not initialised
+    ESP_ERROR_CHECK(token_vec.save());
 
     ESP_LOGI(TAG, "Initialising LittlevGL");
     lv_init();
@@ -72,6 +82,21 @@ void app_main()
 
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
+
+    lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);     /*Add a button the current screen*/
+    lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
+    lv_obj_set_size(btn, 100, 50);                          /*Set its size*/
+
+    lv_obj_t * label = lv_label_create(btn, NULL);          /*Add a label to the button*/
+    lv_label_set_text(label, "Button");
+
+
+    // Uncomment here to crash
+    // ESP_ERROR_CHECK(token_vec.save());
+
+
+    ESP_LOGI(TAG, "Free heap finish parsing: %u, Max heap block: %u",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
     vTaskDelay(portMAX_DELAY);
 }
