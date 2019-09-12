@@ -28,13 +28,6 @@ static void lvgl_main_task(void *p)
     }
 }
 
-
-static void IRAM_ATTR lv_tick_cb()
-{
-    lv_tick_inc(portTICK_RATE_MS);
-}
-
-
 void app_main()
 {
     printf("Hello world!\n");
@@ -53,7 +46,6 @@ void app_main()
     token_vec.emplace_back(otp_key("otpauth://totp/Oh:yes@example.com?secret=M6KPCLEQWANQDZGPSQB47BSDFZWSVLET"
                                    "&issuer=Oh&algorithm=SHA1&digits=6&period=30"));
 
-    // NVS Write operation works if LVGL is not initialised
     ESP_ERROR_CHECK(token_vec.save());
 
     ESP_LOGI(TAG, "Initialising LittlevGL");
@@ -75,10 +67,6 @@ void app_main()
 
     ESP_LOGI(TAG, "Registering LVGL driver");
     lv_disp_drv_register(&disp_drv);
-
-
-    ESP_LOGI(TAG, "Registering LVGL tick callback");
-    esp_register_freertos_tick_hook(lv_tick_cb);
 
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
