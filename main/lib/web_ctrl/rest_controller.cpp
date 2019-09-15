@@ -72,6 +72,23 @@ esp_err_t rest_controller::on_status_get(httpd_req_t *req)
 
 esp_err_t rest_controller::on_totp_set(httpd_req_t *req)
 {
+    char buf[req->content_len];
+    size_t remain = req->content_len;
+    int ret = 0;
+
+    while(remain > 0) {
+        if((ret = httpd_req_recv(req, buf, std::min(remain, req->content_len))) <= 0) {
+            if(ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                continue;
+            }
+            return ESP_FAIL;
+        }
+
+        remain -= ret;
+    }
+
+
+
     return 0;
 }
 

@@ -71,16 +71,12 @@ void app_main()
     ESP_LOGI(TAG, "Starting LVGL main task");
     xTaskCreate(lvgl_main_task, "lv_task", 8192, nullptr, 5, nullptr);
 
-    lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);     /*Add a button the current screen*/
+    lv_obj_t * btn = lv_btn_create(lv_scr_act(), nullptr);     /*Add a button the current screen*/
     lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
     lv_obj_set_size(btn, 100, 50);                          /*Set its size*/
 
     lv_obj_t * label = lv_label_create(btn, NULL);          /*Add a label to the button*/
     lv_label_set_text(label, "Button");
-
-
-    // Uncomment here to crash
-    // ESP_ERROR_CHECK(token_vec.save());
 
 
     ESP_LOGI(TAG, "Free heap finish parsing: %u, Max heap block: %u",
