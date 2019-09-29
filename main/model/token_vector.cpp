@@ -26,7 +26,7 @@ token_vector::token_vector()
         nvs_entry_info(uri_it, &info);
         uri_it = nvs_entry_next(uri_it);
         if(nvs_get_str(handle, info.key, uri_str, &uri_len) == ESP_OK) {
-            emplace_back(otp_key(uri_str));
+            push_back(otp_key(uri_str));
         }
 
         ESP_LOGI(TAG, "Got token: %s", info.key);
