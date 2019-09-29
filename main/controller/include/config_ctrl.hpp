@@ -1,8 +1,10 @@
 #pragma once
 
+#include <m5stickc.hpp>
 #include <string>
+#include "ictrl.hpp"
 
-class config_ctrl
+class config_ctrl : protected ictrl
 {
     public:
         config_ctrl();
