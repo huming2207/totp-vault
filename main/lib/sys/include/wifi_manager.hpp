@@ -7,6 +7,7 @@
 #include <freertos/event_groups.h>
 #include <esp_wifi.h>
 #include <array>
+#include <functional>
 
 namespace sys
 {
@@ -36,6 +37,13 @@ namespace sys
 
         private:
             wifi_manager();
+            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> on_connected_cb;
+            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> on_disconnected_cb;
+            std::function<void()> on_sta_disconnect_cb;
+            std::function<void()> on_sta_connect_lost_cb;
+
+            static void wifi_evt_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+            static void ip_evt_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
             static uint8_t sta_retry_cnt;
             static uint8_t sta_max_retry;
             static EventGroupHandle_t wifi_event_group;
