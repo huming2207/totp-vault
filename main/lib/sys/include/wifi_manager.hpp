@@ -34,6 +34,12 @@ namespace sys
             esp_err_t stop();
             esp_err_t get_sta_config(wifi_config_t &config);
             esp_err_t get_ap_config(wifi_config_t &config);
+            void on_connected(const std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)>& cb);
+            void on_disconnected(const std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)>& cb);
+            void on_sta_disconnect(const std::function<void()>& cb);
+            void on_sta_connect_lost(const std::function<void()>& cb);
+            void on_dhcp_done(const std::function<void()>& cb);
+            void on_dhcp6_done(const std::function<void()>& cb);
 
         private:
             wifi_manager();

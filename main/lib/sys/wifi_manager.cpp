@@ -42,7 +42,7 @@ wifi_manager::wifi_manager()
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_manager::wifi_evt_handler, this));
 
     // Register IP events
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, wifi_manager::ip_evt_handler, nullptr));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, wifi_manager::ip_evt_handler, this));
 }
 
 esp_err_t wifi_manager::set_ap_config(const std::string &ssid, const std::string &passwd, uint8_t channel)
@@ -103,6 +103,36 @@ esp_err_t wifi_manager::get_sta_config(wifi_config_t &config)
     return esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
 }
 
+void wifi_manager::on_connected(const std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> &cb)
+{
+    connected_cb = cb;
+}
+
+void wifi_manager::on_disconnected(const std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> &cb)
+{
+    disconnected_cb = cb;
+}
+
+void wifi_manager::on_sta_disconnect(const std::function<void()> &cb)
+{
+    sta_disconnect_cb = cb;
+}
+
+void wifi_manager::on_sta_connect_lost(const std::function<void()> &cb)
+{
+    sta_connect_lost_cb = cb;
+}
+
+void wifi_manager::on_dhcp_done(const std::function<void()> &cb)
+{
+    dhcp_done_cb = cb;
+}
+
+void wifi_manager::on_dhcp6_done(const std::function<void()> &cb)
+{
+    dhcp6_done_cb = cb;
+}
+
 void wifi_manager::wifi_evt_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if(arg == nullptr) return;
@@ -152,3 +182,4 @@ void wifi_manager::ip_evt_handler(void *arg, esp_event_base_t event_base, int32_
         if(wifi_mgr->dhcp6_done_cb)  wifi_mgr->dhcp6_done_cb();
     }
 }
+
