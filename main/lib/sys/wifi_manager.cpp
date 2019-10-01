@@ -111,21 +111,21 @@ void wifi_manager::wifi_evt_handler(void *arg, esp_event_base_t event_base, int3
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STACONNECTED) {
         auto* event = (wifi_event_ap_staconnected_t*) event_data;
         ESP_LOGD(TAG, "Station " MACSTR " joined, AID=%d", MAC2STR(event->mac), event->aid);
-        if(wifi_mgr->on_connected_cb) {
-            wifi_mgr->on_connected_cb(
+        if(wifi_mgr->connected_cb) {
+            wifi_mgr->connected_cb(
                     { event->mac[0], event->mac[1], event->mac[2], event->mac[4], event->mac[5] }, event->aid);
         }
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         auto* event = (wifi_event_ap_stadisconnected_t*) event_data;
         ESP_LOGD(TAG, "Station " MACSTR " left, AID=%d", MAC2STR(event->mac), event->aid);
-        if(wifi_mgr->on_disconnected_cb) {
-            wifi_mgr->on_disconnected_cb(
+        if(wifi_mgr->disconnected_cb) {
+            wifi_mgr->disconnected_cb(
                     { event->mac[0], event->mac[1], event->mac[2], event->mac[4], event->mac[5] }, event->aid);
         }
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        if(wifi_mgr->on_sta_disconnect_cb) wifi_mgr->on_sta_disconnect_cb();
+        if(wifi_mgr->sta_disconnect_cb) wifi_mgr->sta_disconnect_cb();
         if (wifi_manager::sta_retry_cnt < wifi_manager::sta_max_retry) {
             esp_wifi_connect();
             wifi_manager::sta_retry_cnt++;
@@ -133,25 +133,22 @@ void wifi_manager::wifi_evt_handler(void *arg, esp_event_base_t event_base, int3
         }
 
         ESP_LOGE(TAG,"Connect to the AP failed, maximum retry exceeded");
-        if(wifi_mgr->on_sta_connect_lost_cb) wifi_mgr->on_sta_connect_lost_cb();
+        if(wifi_mgr->sta_connect_lost_cb) wifi_mgr->sta_connect_lost_cb();
     }
 }
 
 void wifi_manager::ip_evt_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
+    if(arg == nullptr) return;
+    auto *wifi_mgr = static_cast<wifi_manager*>(arg);
+
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         auto* event = (ip_event_got_ip_t*) event_data;
-        ESP_LOGI(TAG, "Got IPv4 from AP: %s", ip4addr_ntoa(&event->ip_info.ip));
-        std::memcpy(&wifi_manager::ip_addr, &event->ip_info.ip, sizeof(ip_addr_t));
-        sta_retry_cnt = 0;
-        xEventGroupSetBits(wifi_manager::wifi_event_group, def::WIFI_STA_CONNECTED);
-
+        ESP_LOGD(TAG, "Got IPv4 from AP: %s", ip4addr_ntoa(&event->ip_info.ip));
+        if(wifi_mgr->dhcp_done_cb)  wifi_mgr->dhcp_done_cb();
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_GOT_IP6) {
         auto* event = (ip_event_got_ip6_t*) event_data;
-        ESP_LOGI(TAG, "Got IPv6 from AP: %s", ip6addr_ntoa(&event->ip6_info.ip));
-        std::memcpy(&wifi_manager::ip6_addr, &event->ip6_info.ip, sizeof(ip6_addr_t));
-        sta_retry_cnt = 0;
-        xEventGroupSetBits(wifi_manager::wifi_event_group, def::WIFI_STA_CONNECTED);
-
+        ESP_LOGD(TAG, "Got IPv6 from AP: %s", ip6addr_ntoa(&event->ip6_info.ip));
+        if(wifi_mgr->dhcp6_done_cb)  wifi_mgr->dhcp6_done_cb();
     }
 }

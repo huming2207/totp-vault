@@ -37,10 +37,12 @@ namespace sys
 
         private:
             wifi_manager();
-            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> on_connected_cb;
-            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> on_disconnected_cb;
-            std::function<void()> on_sta_disconnect_cb;
-            std::function<void()> on_sta_connect_lost_cb;
+            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> connected_cb;
+            std::function<void(const std::array<uint8_t, 6> mac, uint8_t aid)> disconnected_cb;
+            std::function<void()> sta_disconnect_cb;
+            std::function<void()> sta_connect_lost_cb;
+            std::function<void()> dhcp_done_cb;
+            std::function<void()> dhcp6_done_cb;
 
             static void wifi_evt_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
             static void ip_evt_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
